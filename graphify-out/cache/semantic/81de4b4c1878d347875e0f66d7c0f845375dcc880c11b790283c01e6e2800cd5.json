@@ -1,0 +1,1 @@
+{"nodes": [{"id": "config_analysis_options", "type": "config", "label": "Analisis Linter Flutter", "summary": "Include flutter_lints, exclude folder build, linux, android dari analisis.", "source_file": "analysis_options.yaml", "confidence": "EXTRACTED"}], "edges": [], "hyperedges": []}

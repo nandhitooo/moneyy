@@ -1,0 +1,140 @@
+{
+  "android/app/build.gradle.kts": {
+    "mtime": 1789963534.6596808,
+    "seen": 1789965782.6360662,
+    "ast_hash": "3008c87e455460c0f1a84c9ee9c52aa1",
+    "semantic_hash": "3008c87e455460c0f1a84c9ee9c52aa1"
+  },
+  "android/app/src/main/kotlin/com/fernandhito/catatan_keuangan/MainActivity.kt": {
+    "mtime": 1789963562.570797,
+    "seen": 1789965782.6360712,
+    "ast_hash": "c4de0c3d1fee2ddd65bbbcffef1a6831",
+    "semantic_hash": "c4de0c3d1fee2ddd65bbbcffef1a6831"
+  },
+  "android/build.gradle.kts": {
+    "mtime": 1789958943.310011,
+    "seen": 1789965782.6360743,
+    "ast_hash": "f11f360aed44d4f6871b398346af14f0",
+    "semantic_hash": "f11f360aed44d4f6871b398346af14f0"
+  },
+  "android/settings.gradle.kts": {
+    "mtime": 1789963252.5033004,
+    "seen": 1789965782.6360767,
+    "ast_hash": "4dbe7f748b210c59fcd1dc84e7cf1ed9",
+    "semantic_hash": "4dbe7f748b210c59fcd1dc84e7cf1ed9"
+  },
+  "firebase.json": {
+    "mtime": 1789956765.2088585,
+    "seen": 1789965782.636079,
+    "ast_hash": "7fc70f6a41afce0a0ca3ad2bfa3ce10d",
+    "semantic_hash": "7fc70f6a41afce0a0ca3ad2bfa3ce10d"
+  },
+  "lib/config/env.dart": {
+    "mtime": 1789930190.0,
+    "seen": 1789965782.6360817,
+    "ast_hash": "53d26b669c72602b0564680a8e97bbbf",
+    "semantic_hash": "53d26b669c72602b0564680a8e97bbbf"
+  },
+  "lib/main.dart": {
+    "mtime": 1789964565.966124,
+    "seen": 1789965782.6360846,
+    "ast_hash": "f813119c89fe93fe4439ef9097cf4438",
+    "semantic_hash": "f813119c89fe93fe4439ef9097cf4438"
+  },
+  "lib/models/transaction_model.dart": {
+    "mtime": 1789929724.0,
+    "seen": 1789965782.6360955,
+    "ast_hash": "f3e7522e6ff62dfabe144e453c6e2c07",
+    "semantic_hash": "f3e7522e6ff62dfabe144e453c6e2c07"
+  },
+  "lib/screens/add_transaction_screen.dart": {
+    "mtime": 1789964671.5413175,
+    "seen": 1789965782.6360986,
+    "ast_hash": "42b1261abf634df697e0dc73b53645e7",
+    "semantic_hash": "42b1261abf634df697e0dc73b53645e7"
+  },
+  "lib/screens/home_screen.dart": {
+    "mtime": 1789965445.331307,
+    "seen": 1789965782.6361003,
+    "ast_hash": "62e2c6449742679f16c57101981f1e78",
+    "semantic_hash": "62e2c6449742679f16c57101981f1e78"
+  },
+  "lib/screens/login_screen.dart": {
+    "mtime": 1789964597.0382745,
+    "seen": 1789965782.6361024,
+    "ast_hash": "c3c1f34f686bf991799e2e0968a3a8ab",
+    "semantic_hash": "c3c1f34f686bf991799e2e0968a3a8ab"
+  },
+  "lib/screens/stats_screen.dart": {
+    "mtime": 1789964735.5820208,
+    "seen": 1789965782.6361043,
+    "ast_hash": "f6acdff0ba95d5dc2d3ae8e73f7f6f77",
+    "semantic_hash": "f6acdff0ba95d5dc2d3ae8e73f7f6f77"
+  },
+  "lib/services/auth_service.dart": {
+    "mtime": 1789962452.5824378,
+    "seen": 1789965782.6361063,
+    "ast_hash": "90c5859434d60a2dd9edbf1242fe9470",
+    "semantic_hash": "90c5859434d60a2dd9edbf1242fe9470"
+  },
+  "lib/services/transaction_service.dart": {
+    "mtime": 1789965117.9598625,
+    "seen": 1789965782.6361077,
+    "ast_hash": "63cc5df3fc857cdc56d0715c75c6d284",
+    "semantic_hash": "63cc5df3fc857cdc56d0715c75c6d284"
+  },
+  "lib/utils/helpers.dart": {
+    "mtime": 1789964565.9215493,
+    "seen": 1789965782.6361096,
+    "ast_hash": "0c0ce3c7f9f2746520bf93160ea59ea4",
+    "semantic_hash": "0c0ce3c7f9f2746520bf93160ea59ea4"
+  },
+  "linux/flutter/generated_plugin_registrant.cc": {
+    "mtime": 1789958001.7782788,
+    "seen": 1789965782.636111,
+    "ast_hash": "d07afe003d5837167bdd357d593f20a0",
+    "semantic_hash": "d07afe003d5837167bdd357d593f20a0"
+  },
+  "linux/flutter/generated_plugin_registrant.h": {
+    "mtime": 1789958001.7718709,
+    "seen": 1789965782.636113,
+    "ast_hash": "d295462c9da9f7fef22dc86c34492318",
+    "semantic_hash": "d295462c9da9f7fef22dc86c34492318"
+  },
+  "linux/runner/main.cc": {
+    "mtime": 1789957998.7432897,
+    "seen": 1789965782.6361144,
+    "ast_hash": "0643b8609698e96b3abd63c210361a87",
+    "semantic_hash": "0643b8609698e96b3abd63c210361a87"
+  },
+  "linux/runner/my_application.cc": {
+    "mtime": 1789957998.754816,
+    "seen": 1789965782.6361163,
+    "ast_hash": "a38ce84287f210ca446e2d9f071071c3",
+    "semantic_hash": "a38ce84287f210ca446e2d9f071071c3"
+  },
+  "linux/runner/my_application.h": {
+    "mtime": 1789957998.7600408,
+    "seen": 1789965782.636118,
+    "ast_hash": "326a85d68857137fdfe8698a0c071baf",
+    "semantic_hash": "326a85d68857137fdfe8698a0c071baf"
+  },
+  "README.md": {
+    "mtime": 1789930190.0,
+    "seen": 1789965782.6361198,
+    "ast_hash": "82fd72b5ce101a55cd5a6d63bc700eec",
+    "semantic_hash": "82fd72b5ce101a55cd5a6d63bc700eec"
+  },
+  "analysis_options.yaml": {
+    "mtime": 1789958946.2691536,
+    "seen": 1789965782.636121,
+    "ast_hash": "ec2ff2abe626b6d75b9df87cf81624be",
+    "semantic_hash": "ec2ff2abe626b6d75b9df87cf81624be"
+  },
+  "android/app/src/main/res/mipmap-mdpi/ic_launcher.png": {
+    "mtime": 1789958943.3570402,
+    "seen": 1789965782.6361237,
+    "ast_hash": "6270344430679711b81476e29878caa7",
+    "semantic_hash": "6270344430679711b81476e29878caa7"
+  }
+}

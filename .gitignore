@@ -1,0 +1,16 @@
+# Environment
+.env
+
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.idea/
+*.iml
+
+# Firebase
+lib/firebase_options.dart
+google-services.json
+GoogleService-Info.plist

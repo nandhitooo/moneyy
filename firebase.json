@@ -1,0 +1,18 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "money-fc3a4",
+          "configurations": {
+            "android": "1:893367357335:android:7940dcbebaaa67585c7ed2"
+          }
+        }
+      }
+    }
+  }
+}

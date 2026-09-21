@@ -1,0 +1,255 @@
+{
+  "nodes": [
+    {
+      "id": "doc_readme",
+      "type": "document",
+      "label": "README Catatan Keuangan",
+      "summary": "Dokumen utama project: fitur aplikasi (Firebase Auth, Firestore realtime, ringkasan bulanan, statistik), cara setup Firebase, struktur data users/{uid}/transactions, Device Preview, dan Firebase Emulator.",
+      "source_file": "README.md",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "doc_readme_feature_auth",
+      "type": "concept",
+      "label": "Fitur: Login & Kategori",
+      "summary": "Login/daftar via Firebase Auth + kategorisasi pemasukan/pengeluaran.",
+      "source_file": "README.md",
+      "confidence": "EXTRACTED",
+      "source_location": "L3"
+    },
+    {
+      "id": "doc_readme_setup",
+      "type": "concept",
+      "label": "Panduan Setup Firebase",
+      "summary": "Langkah: flutterfire configure, aktifkan Email/Password auth, Firestore production mode, salin firestore.rules.",
+      "source_file": "README.md",
+      "confidence": "EXTRACTED",
+      "source_location": "L8"
+    },
+    {
+      "id": "doc_readme_data_model",
+      "type": "concept",
+      "label": "Struktur Data Firestore",
+      "summary": "users/{uid}/transactions/{id} berisi title, amount (int Rupiah), type income/expense, category, date, note, createdAt, updatedAt.",
+      "source_file": "README.md",
+      "confidence": "EXTRACTED",
+      "source_location": "L45"
+    },
+    {
+      "id": "config_firestore_rules",
+      "type": "config",
+      "label": "Aturan Keamanan Firestore",
+      "summary": "rules_version 2: setiap user hanya boleh baca/tulis transaksi miliknya sendiri via request.auth.uid == userId pada path /users/{userId}/transactions/{txId}.",
+      "source_file": "firestore.rules",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "config_env_example",
+      "type": "config",
+      "label": "Template Environment (.env.example)",
+      "summary": "Konfigurasi runtime: APP_NAME, ENABLE_DEVICE_PREVIEW untuk Device Preview debug, USE_FIREBASE_EMULATOR + host/port emulator auth (9099) dan firestore (8080).",
+      "source_file": ".env.example",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "config_analysis_options",
+      "type": "config",
+      "label": "Analisis Linter Flutter",
+      "summary": "Include flutter_lints, exclude folder build, linux, android dari analisis.",
+      "source_file": "analysis_options.yaml",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "config_metadata",
+      "type": "config",
+      "label": "Metadata Project Flutter",
+      "summary": "Tracking versi Flutter (stable), project_type app, platform terdaftar: root dan android. Unmanaged: lib/main.dart.",
+      "source_file": ".metadata",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "config_firebase_json",
+      "type": "config",
+      "label": "Konfigurasi flutterfire (firebase.json)",
+      "summary": "Mendaftarkan projectId money-fc3a4 dan appId Android untuk generasi lib/firebase_options.dart.",
+      "source_file": "firebase.json",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "asset_app_icon",
+      "type": "image",
+      "label": "Ikon Aplikasi (5 resolusi)",
+      "summary": "Ikon launcher default Flutter di semua densitas mipmap mdpi-xxxhdpi. Belum dikustomisasi.",
+      "source_file": [
+        "android/app/src/main/res/mipmap-mdpi/ic_launcher.png",
+        "mdpi"
+      ],
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "asset_android_platform",
+      "type": "platform",
+      "label": "Platform Android",
+      "summary": "Konfigurasi Android: gradle KTS, namespace com.fernandhito.catatan_keuangan, google-services plugin, google-services.json, Manifest dengan label Catatan Keuangan.",
+      "source_file": "android/app/build.gradle.kts",
+      "confidence": "EXTRACTED"
+    }
+  ],
+  "edges": [
+    {
+      "source": "doc_readme",
+      "target": "doc_readme_feature_auth",
+      "relation": "describes",
+      "context": "doc structure",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "weight": 1.0
+    },
+    {
+      "source": "doc_readme",
+      "target": "doc_readme_setup",
+      "relation": "describes",
+      "context": "doc structure",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "weight": 1.0
+    },
+    {
+      "source": "doc_readme",
+      "target": "doc_readme_data_model",
+      "relation": "describes",
+      "context": "doc structure",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "weight": 1.0
+    },
+    {
+      "source": "doc_readme_feature_auth",
+      "target": "lib_services_auth_service",
+      "relation": "documents",
+      "context": "README menjelaskan modul auth",
+      "confidence": "INFERRED",
+      "source_file": "README.md",
+      "weight": 1.0
+    },
+    {
+      "source": "doc_readme_data_model",
+      "target": "lib_models_transaction_model",
+      "relation": "documents",
+      "context": "README mendefinisikan skema yang diimplementasikan model",
+      "confidence": "INFERRED",
+      "source_file": "README.md",
+      "weight": 1.0
+    },
+    {
+      "source": "doc_readme_data_model",
+      "target": "lib_services_transaction_service",
+      "relation": "documents",
+      "context": "README mendokumentasikan path koleksi yang dipakai service",
+      "confidence": "INFERRED",
+      "source_file": "README.md",
+      "weight": 1.0
+    },
+    {
+      "source": "doc_readme_setup",
+      "target": "lib_firebase_options",
+      "relation": "references",
+      "context": "setup menghasilkan firebase_options.dart",
+      "confidence": "INFERRED",
+      "source_file": "README.md",
+      "weight": 1.0
+    },
+    {
+      "source": "doc_readme_setup",
+      "target": "config_firestore_rules",
+      "relation": "references",
+      "context": "setup menyuruh menyalin firestore.rules",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "weight": 1.0
+    },
+    {
+      "source": "config_firestore_rules",
+      "target": "lib_services_transaction_service",
+      "relation": "protects",
+      "context": "rules mengamankan koleksi yang diakses TransactionService",
+      "confidence": "INFERRED",
+      "source_file": "firestore.rules",
+      "weight": 1.0
+    },
+    {
+      "source": "config_env_example",
+      "target": "lib_config_env",
+      "relation": "configures",
+      "context": "template mendefinisikan variabel yang dibaca kelas Env",
+      "confidence": "INFERRED",
+      "source_file": ".env.example",
+      "weight": 1.0
+    },
+    {
+      "source": "config_env_example",
+      "target": "lib_main",
+      "relation": "configures",
+      "context": "env memengaruhi perilaku main (DevicePreview, emulator)",
+      "confidence": "INFERRED",
+      "source_file": ".env.example",
+      "weight": 1.0
+    },
+    {
+      "source": "config_metadata",
+      "target": "lib_main",
+      "relation": "references",
+      "context": "terdaftar sebagai unmanaged_files",
+      "confidence": "EXTRACTED",
+      "source_file": ".metadata",
+      "weight": 1.0
+    },
+    {
+      "source": "config_firebase_json",
+      "target": "lib_firebase_options",
+      "relation": "generates",
+      "context": "konfigurasi ini menghasilkan file options",
+      "confidence": "INFERRED",
+      "source_file": "firebase.json",
+      "weight": 1.0
+    },
+    {
+      "source": "asset_android_platform",
+      "target": "asset_app_icon",
+      "relation": "contains",
+      "context": "res/mipmap berisi ikon",
+      "confidence": "EXTRACTED",
+      "source_file": [
+        "android/app/src/main/res/mipmap-mdpi/ic_launcher.png",
+        "mdpi"
+      ],
+      "weight": 1.0
+    },
+    {
+      "source": "lib_main",
+      "target": "asset_android_platform",
+      "relation": "runs_on",
+      "context": "aplikasi Flutter berjalan di platform Android",
+      "confidence": "INFERRED",
+      "source_file": "lib/main.dart",
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "flow_money",
+      "label": "Alur Data Transaksi",
+      "members": [
+        "lib_main",
+        "lib_services_auth_service",
+        "lib_services_transaction_service",
+        "lib_models_transaction_model",
+        "config_firestore_rules",
+        "doc_readme_data_model"
+      ],
+      "summary": "Dari login (AuthService) user terautentikasi, TransactionService membaca/menulis model transaksi ke Firestore dengan aturan keamanan per-user, ditampilkan HomeScreen per bulan."
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}
