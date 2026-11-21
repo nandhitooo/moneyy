@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../services/auth_service.dart';
 
@@ -55,8 +55,6 @@ class _LoginScreenState extends State<LoginScreen> {
         ? _auth.signIn(_email.text, _password.text)
         : _auth.register(_email.text, _password.text));
   }
-
-  Future<void> _submitGoogle() => _run(_auth.signInWithGoogle);
 
   void _toggleMode() {
     setState(() {
@@ -158,34 +156,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: _loading
                               ? const _ButtonSpinner()
                               : Text(_isLogin ? 'Masuk' : 'Daftar'),
-                        ),
-                        const SizedBox(height: 12),
-                        // Baris pemisah "atau" antara email dan Google.
-                        Row(
-                          children: [
-                            const Expanded(child: Divider()),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
-                              child: Text(
-                                'atau',
-                                style: TextStyle(
-                                  color: cs.onSurfaceVariant,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                            const Expanded(child: Divider()),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        OutlinedButton.icon(
-                          onPressed: _loading ? null : _submitGoogle,
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                          icon: const Icon(Icons.g_mobiledata),
-                          label: const Text('Masuk dengan Google'),
                         ),
                         const SizedBox(height: 16),
                         TextButton(

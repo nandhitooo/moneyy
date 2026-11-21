@@ -11,15 +11,18 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  firebase_core: ^3.6.0
+  firebase_core: ^3.15.2
   firebase_auth: ^5.3.1
-  google_sign_in: ^6.3.0
   cloud_firestore: ^5.4.4
   intl: ">=0.19.0 <1.0.0"
   fl_chart: ^0.69.0
   device_preview: ^1.2.0
   flutter_dotenv: ^5.1.0
 
+  # Material dan Cupertino dipisah dari SDK Flutter sejak 3.47, jadi keduanya
+  # wajib dideklarasikan langsung karena diimpor di lib/ dan test/.
+  material_ui: ^1.11.1
+  cupertino_ui: ^1.1.7
 dev_dependencies:
   flutter_test:
     sdk: flutter

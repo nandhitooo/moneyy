@@ -40,6 +40,22 @@ class TransactionService {
         .map((s) => s.docs.map(TransactionModel.fromDoc).toList());
   }
 
+  /// Stream semua transaksi satu sumber dana, urut tanggal menaik.
+  ///
+  /// Pengurutan dilakukan di perangkat supaya tidak butuh composite index
+  /// `sourceId` + `date`. Dipakai halaman detail sumber dana untuk menghitung
+  /// saldo berjalan.
+  Stream<List<TransactionModel>> watchBySource(String sourceId) {
+    return _col.where('sourceId', isEqualTo: sourceId).snapshots().map((s) {
+      final list = s.docs.map(TransactionModel.fromDoc).toList()
+        ..sort((a, b) {
+          final byDate = a.date.compareTo(b.date);
+          return byDate != 0 ? byDate : (a.id ?? '').compareTo(b.id ?? '');
+        });
+      return list;
+    });
+  }
+
   /// Saldo bersih (pemasukan - pengeluaran) semua transaksi sebelum bulan ini.
   ///
   /// Memakai agregasi `sum(signedAmount)` dengan filter `date`. Firestore
@@ -126,10 +142,29 @@ class TransactionService {
       knownExpense += total.expense;
     }
 
+    // Saldo awal bukan transaksi, jadi tidak ikut agregasi Firestore dan
+    // ditambahkan di sini. Total keseluruhan memakai seluruh saldo awal.
+    final initialById = <String, int>{
+      for (final source in sources)
+        if (source.id != null) source.id!: source.initialBalance,
+    };
+    final totalInitial =
+        initialById.values.fold<int>(0, (acc, value) => acc + value);
+
     return SourceTotals(
-      overall: overall,
+      overall: SourceTotal(
+        income: overall.income,
+        expense: overall.expense,
+        initialBalance: totalInitial,
+      ),
       bySourceId: {
-        for (final total in perSource) total.sourceId ?? '': total,
+        for (final total in perSource)
+          total.sourceId ?? '': SourceTotal(
+            sourceId: total.sourceId,
+            income: total.income,
+            expense: total.expense,
+            initialBalance: initialById[total.sourceId] ?? 0,
+          ),
         // Transaksi tanpa sumber (atau bersumber yang sudah tidak ada) dihitung
         // sebagai selisih, jadi tidak perlu query `sourceId == null`.
         '': SourceTotal(
@@ -168,8 +203,15 @@ class TransactionService {
       }
     }
 
+    final totalInitial =
+        sources.fold<int>(0, (acc, source) => acc + source.initialBalance);
+
     return SourceTotals(
-      overall: SourceTotal(income: overallIncome, expense: overallExpense),
+      overall: SourceTotal(
+        income: overallIncome,
+        expense: overallExpense,
+        initialBalance: totalInitial,
+      ),
       bySourceId: {
         for (final source in sources)
           if (source.id != null)
@@ -177,6 +219,7 @@ class TransactionService {
               sourceId: source.id,
               income: incomeById[source.id] ?? 0,
               expense: expenseById[source.id] ?? 0,
+              initialBalance: source.initialBalance,
             ),
         '': SourceTotal(
           income: incomeById[''] ?? 0,

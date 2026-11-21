@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../models/funding_source.dart';
 import '../models/month_summary.dart';
@@ -215,7 +215,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _matchesSource(TransactionModel transaction) {
     if (_sourceFilter == null) return true;
-    if (_sourceFilter == unknownSourceFilterId) return transaction.sourceId == null;
+    if (_sourceFilter == unknownSourceFilterId)
+      return transaction.sourceId == null;
     return transaction.sourceId == _sourceFilter;
   }
 

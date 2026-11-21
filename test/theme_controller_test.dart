@@ -1,5 +1,5 @@
 import 'package:catatan_keuangan/config/theme_controller.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -42,7 +42,8 @@ void main() {
     });
 
     test('instance dipakai bersama seluruh aplikasi', () {
-      expect(identical(ThemeController.instance, ThemeController.instance), isTrue);
+      expect(identical(ThemeController.instance, ThemeController.instance),
+          isTrue);
     });
   });
 }

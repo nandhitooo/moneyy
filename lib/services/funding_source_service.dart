@@ -35,9 +35,8 @@ class FundingSourceService {
     return true;
   }
 
-  Future<void> add(String name, {required bool isCash}) => _col.add({
-        'name': name,
-        'isCash': isCash,
+  Future<void> add(FundingSource source) => _col.add({
+        ...source.toMap(),
         'createdAt': FieldValue.serverTimestamp(),
       });
 

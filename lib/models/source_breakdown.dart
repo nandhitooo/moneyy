@@ -70,10 +70,15 @@ class SourceTotal {
   final int income;
   final int expense;
 
+  /// Saldo awal sumber dana. Ikut dihitung di [net], tetapi bukan arus dana,
+  /// jadi tidak memengaruhi [total].
+  final int initialBalance;
+
   const SourceTotal({
     this.sourceId,
     this.income = 0,
     this.expense = 0,
+    this.initialBalance = 0,
   });
 
   /// Menyusun total dari dua hasil agregasi:
@@ -83,6 +88,7 @@ class SourceTotal {
     String? sourceId,
     int net = 0,
     int flow = 0,
+    int initialBalance = 0,
   }) {
     // flow = income + expense dan net = income - expense, jadi:
     // income = (flow + net) / 2 dan expense = (flow - net) / 2.
@@ -92,14 +98,15 @@ class SourceTotal {
       sourceId: sourceId,
       income: income < 0 ? 0 : income,
       expense: expense < 0 ? 0 : expense,
+      initialBalance: initialBalance,
     );
   }
 
-  int get net => income - expense;
+  int get net => income - expense + initialBalance;
 
   int get total => income + expense;
 
-  bool get isEmpty => income == 0 && expense == 0;
+  bool get isEmpty => income == 0 && expense == 0 && initialBalance == 0;
 }
 
 /// Hasil agregasi saldo: total keseluruhan plus rincian per sumber dana.

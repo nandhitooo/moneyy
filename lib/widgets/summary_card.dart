@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../models/funding_source.dart';
 import '../models/month_summary.dart';
@@ -102,7 +102,8 @@ class SummaryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Saldo bulan ini', style: TextStyle(color: cs.onPrimaryContainer)),
+            Text('Saldo bulan ini',
+                style: TextStyle(color: cs.onPrimaryContainer)),
             const SizedBox(height: 4),
             Semantics(
               label: 'Saldo bulan ini ${rupiah.format(summary.balance)}',
@@ -151,7 +152,8 @@ class SummaryCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           border: Border(
                             left: BorderSide(
-                              color: cs.onPrimaryContainer.withValues(alpha: 0.2),
+                              color:
+                                  cs.onPrimaryContainer.withValues(alpha: 0.2),
                             ),
                           ),
                         ),

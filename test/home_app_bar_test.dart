@@ -1,7 +1,7 @@
 import 'package:catatan_keuangan/config/theme.dart';
 import 'package:catatan_keuangan/config/theme_controller.dart';
 import 'package:catatan_keuangan/widgets/home_app_bar.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Lebar judul "Catatan Keuangan" pada gaya `titleLarge` (22sp), diukur dengan
@@ -115,7 +115,8 @@ void main() {
     testWidgets('menu overflow memanggil aksi Muat ulang', (tester) async {
       var refreshed = 0;
       var loggedOut = 0;
-      await pumpBar(tester, onRefresh: () => refreshed++, onLogout: () => loggedOut++);
+      await pumpBar(tester,
+          onRefresh: () => refreshed++, onLogout: () => loggedOut++);
 
       await openOverflowMenu(tester);
       await tester.tap(find.text('Muat ulang'));
@@ -129,7 +130,8 @@ void main() {
     testWidgets('menu overflow memanggil aksi Keluar', (tester) async {
       var refreshed = 0;
       var loggedOut = 0;
-      await pumpBar(tester, onRefresh: () => refreshed++, onLogout: () => loggedOut++);
+      await pumpBar(tester,
+          onRefresh: () => refreshed++, onLogout: () => loggedOut++);
 
       await openOverflowMenu(tester);
       await tester.tap(find.text('Keluar'));

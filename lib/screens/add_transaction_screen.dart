@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../models/funding_source.dart';
 import '../models/transaction_model.dart';
@@ -49,7 +49,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   List<String> get _categories =>
       _type == TxType.expense ? expenseCategories : incomeCategories;
-
 
   int get _amountValue => ThousandsInputFormatter.parse(_amount.text);
 
@@ -198,9 +197,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final accent = _type == TxType.income
-        ? incomeColor(context)
-        : expenseColor(context);
+    final accent =
+        _type == TxType.income ? incomeColor(context) : expenseColor(context);
     final amount = _amountValue;
 
     return PopScope(
@@ -214,7 +212,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         if (discard && mounted) navigator.pop();
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(_isEdit ? 'Ubah Transaksi' : 'Transaksi Baru')),
+        appBar:
+            AppBar(title: Text(_isEdit ? 'Ubah Transaksi' : 'Transaksi Baru')),
         body: Form(
           key: _formKey,
           child: ListView(
@@ -285,8 +284,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               CategoryPicker(
                 type: _type,
                 selected: _category,
-                onSelected: (category) =>
-                    setState(() => _category = category),
+                onSelected: (category) => setState(() => _category = category),
               ),
               const SizedBox(height: 20),
               SourcePicker(

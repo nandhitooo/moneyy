@@ -1,14 +1,16 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../models/funding_source.dart';
 import '../models/source_breakdown.dart';
 import '../services/funding_source_service.dart';
 import '../services/transaction_service.dart';
 import '../utils/helpers.dart';
+import '../utils/thousands_input_formatter.dart';
 import '../widgets/status_views.dart';
 import '../widgets/summary_card.dart';
+import 'source_detail_screen.dart';
 
 /// Kelola sumber dana (tunai, rekening bank, e-wallet) sekaligus memantau
 /// saldo tiap sumber.
@@ -118,10 +120,20 @@ class _SourcesScreenState extends State<SourcesScreen> {
 
     try {
       if (existing == null) {
-        await _service.add(draft.name, isCash: draft.isCash);
+        await _service.add(
+          FundingSource(
+            name: draft.name,
+            type: draft.type,
+            initialBalance: draft.initialBalance,
+          ),
+        );
       } else {
         await _service.update(
-          existing.copyWith(name: draft.name, isCash: draft.isCash),
+          existing.copyWith(
+            name: draft.name,
+            type: draft.type,
+            initialBalance: draft.initialBalance,
+          ),
         );
       }
     } catch (e) {
@@ -130,6 +142,15 @@ class _SourcesScreenState extends State<SourcesScreen> {
             .showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e')));
       }
     }
+  }
+
+  /// Membuka riwayat transaksi sumber ini beserta saldo berjalannya.
+  Future<void> _openDetail(FundingSource source) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => SourceDetailScreen(source: source)),
+    );
+    if (mounted) unawaited(_loadTotals());
   }
 
   /// Sumber dana tidak boleh dihapus selama masih dipakai transaksi, supaya
@@ -259,14 +280,14 @@ class _SourcesScreenState extends State<SourcesScreen> {
               cash: _totals.cashNet(true, _sources),
               nonCash: _totals.cashNet(false, _sources),
             ),
-          if (_totals.computedOnClient && !_loadFailed)
-            const _ClientSideNote(),
+          if (_totals.computedOnClient && !_loadFailed) const _ClientSideNote(),
           const SizedBox(height: 8),
           for (final source in _sources)
             _SourceTile(
               source: source,
               balance: _totals.forSource(source.id)?.net,
               loading: _loadingTotals,
+              onOpen: () => _openDetail(source),
               onEdit: () => _openForm(source),
               onDelete: () => _confirmDelete(source),
             ),
@@ -353,9 +374,9 @@ class _BalanceHeader extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Saldo dihitung dari seluruh pemasukan dikurangi seluruh '
-              'pengeluaran tiap sumber. Sumber tanpa tanda tunai/non-tunai '
-              'hanya masuk ke total.',
+              'Saldo = saldo awal tiap sumber + seluruh pemasukan - seluruh '
+              'pengeluaran. Saldo dihitung di perangkat dari data tersimpan, '
+              'jadi tidak perlu mencatat transaksi palsu.',
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: cs.onPrimaryContainer),
             ),
@@ -438,6 +459,7 @@ class _SourceTile extends StatelessWidget {
   final FundingSource source;
   final int? balance;
   final bool loading;
+  final VoidCallback onOpen;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -445,6 +467,7 @@ class _SourceTile extends StatelessWidget {
     required this.source,
     required this.balance,
     required this.loading,
+    required this.onOpen,
     required this.onEdit,
     required this.onDelete,
   });
@@ -454,8 +477,13 @@ class _SourceTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(child: Icon(sourceIcon(source))),
       title: Text(source.name),
-      subtitle: Text(source.isCash ? 'Uang tunai' : 'Non-tunai'),
-      onTap: onEdit,
+      subtitle: Text(
+        source.initialBalance == 0
+            ? source.type.label
+            : '${source.type.label} • Saldo awal '
+                '${rupiah.format(source.initialBalance)}',
+      ),
+      onTap: onOpen,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -532,9 +560,10 @@ class _BalanceText extends StatelessWidget {
 
 class _SourceDraft {
   final String name;
-  final bool isCash;
+  final FundingSourceType type;
+  final int initialBalance;
 
-  const _SourceDraft(this.name, this.isCash);
+  const _SourceDraft(this.name, this.type, this.initialBalance);
 }
 
 /// Dialog tambah/ubah sumber dana.
@@ -550,24 +579,38 @@ class _SourceFormDialog extends StatefulWidget {
 class _SourceFormDialogState extends State<_SourceFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _name;
-  late bool _isCash;
+  late final TextEditingController _initialBalance;
+  late FundingSourceType _type;
 
   @override
   void initState() {
     super.initState();
-    _name = TextEditingController(text: widget.existing?.name ?? '');
-    _isCash = widget.existing?.isCash ?? false;
+    final existing = widget.existing;
+    _name = TextEditingController(text: existing?.name ?? '');
+    _type = existing?.type ?? FundingSourceType.bank;
+    final initial = existing?.initialBalance ?? 0;
+    _initialBalance = TextEditingController(
+      text: initial == 0 ? '' : thousandFmt.format(initial),
+    );
   }
 
   @override
   void dispose() {
     _name.dispose();
+    _initialBalance.dispose();
     super.dispose();
   }
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    Navigator.pop(context, _SourceDraft(_name.text.trim(), _isCash));
+    Navigator.pop(
+      context,
+      _SourceDraft(
+        _name.text.trim(),
+        _type,
+        ThousandsInputFormatter.parse(_initialBalance.text),
+      ),
+    );
   }
 
   @override
@@ -592,15 +635,38 @@ class _SourceFormDialogState extends State<_SourceFormDialog> {
                   (v == null || v.trim().isEmpty) ? 'Nama wajib diisi' : null,
               onFieldSubmitted: (_) => _submit(),
             ),
-            const SizedBox(height: 8),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: _isCash,
-              title: const Text('Uang tunai'),
-              subtitle: Text(
-                _isCash ? 'Dianggap uang cash' : 'Rekening bank atau e-wallet',
+            const SizedBox(height: 12),
+            DropdownButtonFormField<FundingSourceType>(
+              initialValue: _type,
+              decoration: const InputDecoration(labelText: 'Jenis'),
+              items: [
+                for (final type in FundingSourceType.values)
+                  DropdownMenuItem(
+                    value: type,
+                    child: Row(
+                      children: [
+                        Icon(sourceIconOf(type), size: 18),
+                        const SizedBox(width: 8),
+                        Text(type.label),
+                      ],
+                    ),
+                  ),
+              ],
+              onChanged: (value) {
+                if (value != null) setState(() => _type = value);
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _initialBalance,
+              keyboardType: TextInputType.number,
+              inputFormatters: [ThousandsInputFormatter()],
+              decoration: const InputDecoration(
+                labelText: 'Saldo awal',
+                prefixText: 'Rp ',
+                helperText: 'Uang yang sudah ada sebelum transaksi pertama.',
               ),
-              onChanged: (value) => setState(() => _isCash = value),
+              onFieldSubmitted: (_) => _submit(),
             ),
           ],
         ),

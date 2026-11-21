@@ -61,8 +61,15 @@ users/{uid}/transactions/{id}
   createdAt, updatedAt
 
 users/{uid}/sources/{id}
-  name, isCash (bool), createdAt
+  name, type ("cash" | "bank" | "eWallet"), initialBalance (int, Rupiah),
+  isCash (bool, diturunkan dari type), createdAt
 ```
+
+Saldo tiap sumber = `initialBalance` + semua pemasukan - semua pengeluaran
+sumber itu. `initialBalance` diisi lewat form sumber dana, jadi uang yang sudah
+ada sebelum aplikasi dipakai tetap terhitung tanpa transaksi palsu. Dokumen
+sumber lama yang belum punya `type` dibaca sebagai `cash` bila `isCash` true,
+selain itu `bank`.
 
 `sourceName` dan `sourceIsCash` disalin dari sumber dana saat transaksi dibuat,
 sehingga transaksi lama tetap punya keterangan walau sumbernya diubah atau

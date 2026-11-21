@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Ilustrasi kosong dengan ikon dan ajakan aksi.
 class EmptyStateView extends StatelessWidget {
@@ -28,7 +28,8 @@ class EmptyStateView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 72, color: cs.onSurfaceVariant.withValues(alpha: 0.5)),
+            Icon(icon,
+                size: 72, color: cs.onSurfaceVariant.withValues(alpha: 0.5)),
             const SizedBox(height: 12),
             Text(
               title,

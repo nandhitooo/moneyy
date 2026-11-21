@@ -2,7 +2,7 @@ import 'package:catatan_keuangan/models/funding_source.dart';
 import 'package:catatan_keuangan/models/month_summary.dart';
 import 'package:catatan_keuangan/models/source_breakdown.dart';
 import 'package:catatan_keuangan/widgets/summary_card.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _summary = MonthSummary(
@@ -12,7 +12,7 @@ const _summary = MonthSummary(
 );
 
 const _sources = [
-  FundingSource(id: 'cash', name: 'Tunai', isCash: true),
+  FundingSource(id: 'cash', name: 'Tunai', type: FundingSourceType.cash),
   FundingSource(id: 'bank', name: 'Rekening Bank'),
   FundingSource(id: 'wallet', name: 'E-Wallet'),
 ];
@@ -36,7 +36,8 @@ SummaryCard _card({
       sources: sources,
       sourceTotals: totals,
       sourceBalancesFailed: failed,
-      sourceBalancesError: failed ? 'failed-precondition: the query requires an index' : null,
+      sourceBalancesError:
+          failed ? 'failed-precondition: the query requires an index' : null,
       onManageSources: () {},
       onRetrySourceBalances: () {},
     );
@@ -68,7 +69,9 @@ void main() {
       expect(find.text('E-Wallet'), findsOneWidget);
 
       // Berdampingan: keduanya mulai di pita vertikal yang sama.
-      expect((_dy(tester, 'Dari bulan lalu') - _dy(tester, 'Saldo per sumber')).abs(),
+      expect(
+          (_dy(tester, 'Dari bulan lalu') - _dy(tester, 'Saldo per sumber'))
+              .abs(),
           lessThan(24));
       expect(tester.takeException(), isNull);
     });
@@ -143,7 +146,7 @@ void main() {
     testWidgets('rincian sumber dibatasi empat baris', (tester) async {
       await _setScreen(tester, const Size(360, 640));
       const banyak = [
-        FundingSource(id: 'a', name: 'Tunai', isCash: true),
+        FundingSource(id: 'a', name: 'Tunai', type: FundingSourceType.cash),
         FundingSource(id: 'b', name: 'Rekening Bank'),
         FundingSource(id: 'c', name: 'E-Wallet'),
         FundingSource(id: 'd', name: 'DANA'),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Tema aplikasi terpusat: warna, radius, dan gaya komponen dibuat konsisten
 /// supaya tidak ada lagi nilai radius yang ditulis ulang per layar.

@@ -146,7 +146,7 @@ void main() {
   });
 
   group('SourceTotals', () {
-    const cash = FundingSource(id: 'cash', name: 'Tunai', isCash: true);
+    const cash = FundingSource(id: 'cash', name: 'Tunai', type: FundingSourceType.cash);
     const bank = FundingSource(id: 'bank', name: 'BCA');
     const totals = SourceTotals(
       overall: SourceTotal(income: 1000000, expense: 400000),

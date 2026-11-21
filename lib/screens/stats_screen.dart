@@ -1,5 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../models/month_summary.dart';
 import '../models/source_breakdown.dart';
@@ -213,10 +213,9 @@ class _StatsScreenState extends State<StatsScreen> {
   static int _percent(int value, int total) =>
       total == 0 ? 0 : (value / total * 100).round();
 
-  static IconData _sourceIcon(SourceBreakdown source) =>
-      source.isCash == true
-          ? Icons.payments_outlined
-          : Icons.account_balance_wallet_outlined;
+  static IconData _sourceIcon(SourceBreakdown source) => source.isCash == true
+      ? Icons.payments_outlined
+      : Icons.account_balance_wallet_outlined;
 }
 
 class _SectionTitle extends StatelessWidget {

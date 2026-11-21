@@ -1,10 +1,10 @@
 import 'package:catatan_keuangan/models/funding_source.dart';
 import 'package:catatan_keuangan/widgets/source_picker.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _sources = [
-  FundingSource(id: 'cash', name: 'Tunai', isCash: true),
+  FundingSource(id: 'cash', name: 'Tunai', type: FundingSourceType.cash),
   FundingSource(id: 'bank', name: 'Rekening Bank'),
   FundingSource(id: 'wallet', name: 'E-Wallet'),
 ];
@@ -98,7 +98,8 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('memilih Belum diisi memanggil onSelected(null)', (tester) async {
+    testWidgets('memilih Belum diisi memanggil onSelected(null)',
+        (tester) async {
       var called = false;
       FundingSource? received;
       await pump(

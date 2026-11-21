@@ -1,6 +1,6 @@
 import 'package:catatan_keuangan/models/transaction_model.dart';
 import 'package:catatan_keuangan/widgets/category_picker.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -120,7 +120,8 @@ void main() {
                       onSelected: (c) => setState(() => selected[0] = c),
                     ),
                     TextButton(
-                      onPressed: () => setState(() => selected[0] = selected[1]),
+                      onPressed: () =>
+                          setState(() => selected[0] = selected[1]),
                       child: const Text('ganti tipe'),
                     ),
                   ],

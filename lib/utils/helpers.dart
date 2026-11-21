@@ -1,10 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 
 import '../models/funding_source.dart';
 
-final rupiah = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+final rupiah =
+    NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 final thousandFmt = NumberFormat.decimalPattern('id_ID');
 final dateFmt = DateFormat('d MMM yyyy', 'id_ID');
 final monthFmt = DateFormat('MMMM yyyy', 'id_ID');
@@ -34,10 +35,20 @@ String errorDetail(Object error, {int maxLength = 400}) {
   return text.length > maxLength ? '${text.substring(0, maxLength)}…' : text;
 }
 
-/// Ikon sumber dana: uang tunai atau non-tunai (bank / e-wallet).
-IconData sourceIcon(FundingSource source) => source.isCash
-    ? Icons.payments_outlined
-    : Icons.account_balance_wallet_outlined;
+/// Ikon jenis sumber dana.
+IconData sourceIconOf(FundingSourceType type) {
+  switch (type) {
+    case FundingSourceType.cash:
+      return Icons.payments_outlined;
+    case FundingSourceType.bank:
+      return Icons.account_balance;
+    case FundingSourceType.eWallet:
+      return Icons.account_balance_wallet_outlined;
+  }
+}
+
+/// Ikon sumber dana sesuai jenisnya.
+IconData sourceIcon(FundingSource source) => sourceIconOf(source.type);
 
 IconData categoryIcon(String category) {
   switch (category) {
