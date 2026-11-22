@@ -66,6 +66,26 @@ IconData categoryIcon(String category) {
       return Icons.favorite;
     case 'Pendidikan':
       return Icons.school;
+    case 'Rumah Tangga':
+      return Icons.home_outlined;
+    case 'Perawatan Diri':
+      return Icons.spa_outlined;
+    case 'Hewan Peliharaan':
+      return Icons.pets;
+    case 'Anak':
+      return Icons.child_care;
+    case 'Donasi':
+      return Icons.volunteer_activism;
+    case 'Asuransi':
+      return Icons.shield_outlined;
+    case 'Pajak':
+      return Icons.gavel;
+    case 'Olahraga':
+      return Icons.fitness_center;
+    case 'Elektronik':
+      return Icons.devices_other;
+    case 'Perjalanan':
+      return Icons.flight_takeoff;
     case 'Gaji':
       return Icons.payments;
     case 'Bonus':

@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum TxType { income, expense }
 
+/// Kategori pengeluaran. Urutan di sini menentukan urutan dropdown, dan
+/// kategori pertama dipakai sebagai nilai awal transaksi baru.
 const expenseCategories = [
   'Makanan',
   'Transportasi',
@@ -10,6 +12,16 @@ const expenseCategories = [
   'Hiburan',
   'Kesehatan',
   'Pendidikan',
+  'Rumah Tangga',
+  'Perawatan Diri',
+  'Hewan Peliharaan',
+  'Anak',
+  'Donasi',
+  'Asuransi',
+  'Pajak',
+  'Olahraga',
+  'Elektronik',
+  'Perjalanan',
   'Lainnya',
 ];
 

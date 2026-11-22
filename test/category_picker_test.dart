@@ -50,10 +50,13 @@ void main() {
       await pump(tester, type: TxType.expense, selected: 'Makanan');
       await openDropdown(tester);
 
-      for (final category in expenseCategories) {
-        expect(find.text(category), findsWidgets,
-            reason: 'kategori $category hilang dari dropdown');
-      }
+      // Menu dropdown hanya membangun item yang terlihat, jadi daftar yang
+      // panjang tidak bisa diperiksa dari teksnya saja. Opsi yang diserahkan
+      // ke dropdown adalah sumber item menunya, jadi seluruh kategori
+      // pengeluaran diperiksa di sini.
+      final picker = tester.widget<CategoryPicker>(find.byType(CategoryPicker));
+      expect(picker.options, containsAll(expenseCategories));
+      expect(find.text('Makanan'), findsWidgets);
       expect(tester.takeException(), isNull);
     });
 
