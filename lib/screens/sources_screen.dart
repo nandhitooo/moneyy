@@ -168,6 +168,8 @@ class _SourcesScreenState extends State<SourcesScreen> {
           initialBalance: source.initialBalance,
           adminFee: draft.amount,
           adminFeeDay: draft.dayOfMonth,
+          // Penanda bulan yang sudah dicatat jangan ikut terhapus.
+          adminFeePosted: source.adminFeePosted,
         ),
       );
     } catch (e) {

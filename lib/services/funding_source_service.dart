@@ -46,5 +46,10 @@ class FundingSourceService {
     return _col.doc(id).update(source.toMap());
   }
 
+  /// Menandai biaya admin bulan [monthKey] sudah dicatat, supaya catatan itu
+  /// tidak dibuat ulang kalau pengguna menghapusnya.
+  Future<void> markAdminFeePosted(String id, String monthKey) =>
+      _col.doc(id).update({'adminFeePosted': monthKey});
+
   Future<void> delete(String id) => _col.doc(id).delete();
 }

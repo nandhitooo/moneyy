@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum TxType { income, expense }
 
+/// Kategori pengeluaran yang dipakai catatan biaya admin otomatis.
+const adminFeeCategory = 'Biaya Admin';
+
 /// Kategori pengeluaran. Urutan di sini menentukan urutan dropdown, dan
 /// kategori pertama dipakai sebagai nilai awal transaksi baru.
 const expenseCategories = [
@@ -22,6 +25,7 @@ const expenseCategories = [
   'Olahraga',
   'Elektronik',
   'Perjalanan',
+  adminFeeCategory,
   'Lainnya',
 ];
 

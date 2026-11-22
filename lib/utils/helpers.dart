@@ -86,6 +86,8 @@ IconData categoryIcon(String category) {
       return Icons.devices_other;
     case 'Perjalanan':
       return Icons.flight_takeoff;
+    case 'Biaya Admin':
+      return Icons.percent;
     case 'Gaji':
       return Icons.payments;
     case 'Bonus':

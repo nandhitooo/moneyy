@@ -50,6 +50,10 @@ class FundingSource {
   /// Tanggal potong biaya admin (1-31). Null bila belum diatur.
   final int? adminFeeDay;
 
+  /// Kunci bulan (`yyyy-MM`) terakhir yang biaya adminnya sudah dicatat sebagai
+  /// pengeluaran. Mencegah pencatatan ganda saat daftar sumber dimuat berulang.
+  final String? adminFeePosted;
+
   const FundingSource({
     this.id,
     required this.name,
@@ -57,6 +61,7 @@ class FundingSource {
     this.initialBalance = 0,
     this.adminFee = 0,
     this.adminFeeDay,
+    this.adminFeePosted,
   });
 
   factory FundingSource.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -68,6 +73,7 @@ class FundingSource {
       initialBalance: (d['initialBalance'] as num?)?.toInt() ?? 0,
       adminFee: (d['adminFee'] as num?)?.toInt() ?? 0,
       adminFeeDay: (d['adminFeeDay'] as num?)?.toInt(),
+      adminFeePosted: d['adminFeePosted'] as String?,
     );
   }
 
@@ -80,6 +86,24 @@ class FundingSource {
     if (adminFee <= 0 || day == null || day < 1 || day > 31) return null;
     return AdminFeeSchedule(amount: adminFee, dayOfMonth: day);
   }
+
+  /// Kunci bulan yang biaya adminnya sudah jatuh tempo tetapi belum dicatat,
+  /// atau null bila belum waktunya atau sudah tercatat bulan ini.
+  ///
+  /// Biaya admin baru dicatat setelah tanggal bayarnya tiba, sehingga tidak ada
+  /// pengeluaran yang muncul sebelum waktunya.
+  String? adminFeePendingMonth(DateTime now) {
+    final schedule = adminFeeSchedule;
+    if (schedule == null) return null;
+    final today = DateTime(now.year, now.month, now.day);
+    if (schedule.dateInMonth(now.year, now.month).isAfter(today)) return null;
+    final key = monthKey(now.year, now.month);
+    return adminFeePosted == key ? null : key;
+  }
+
+  /// Kunci bulan untuk penanda [adminFeePosted], mis. `2026-11`.
+  static String monthKey(int year, int month) =>
+      '$year-${month.toString().padLeft(2, '0')}';
 
   /// True bila sumbernya uang tunai. Transaksi menyalin penanda ini, jadi
   /// nilainya tetap disimpan di dokumen.
@@ -99,6 +123,7 @@ class FundingSource {
     int? initialBalance,
     int? adminFee,
     int? adminFeeDay,
+    String? adminFeePosted,
   }) =>
       FundingSource(
         id: id ?? this.id,
@@ -107,6 +132,7 @@ class FundingSource {
         initialBalance: initialBalance ?? this.initialBalance,
         adminFee: adminFee ?? this.adminFee,
         adminFeeDay: adminFeeDay ?? this.adminFeeDay,
+        adminFeePosted: adminFeePosted ?? this.adminFeePosted,
       );
 
   /// `isCash` tetap ditulis supaya versi aplikasi lama dan data transaksi tetap
@@ -118,5 +144,6 @@ class FundingSource {
         'initialBalance': initialBalance,
         'adminFee': adminFee,
         'adminFeeDay': adminFeeDay,
+        'adminFeePosted': adminFeePosted,
       };
 }

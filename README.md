@@ -63,6 +63,7 @@ users/{uid}/transactions/{id}
 users/{uid}/sources/{id}
   name, type ("cash" | "bank" | "eWallet"), initialBalance (int, Rupiah),
   adminFee (int, Rupiah per bulan), adminFeeDay (1-31, opsional),
+  adminFeePosted (string "yyyy-MM" terakhir yang biayanya sudah dicatat),
   isCash (bool, diturunkan dari type), createdAt
 ```
 
@@ -150,22 +151,33 @@ seluruh sumber yang diketahui.
   bayar 1-31, diisi sendiri oleh pengguna lewat form sumber dana atau menu
   ⋮ → **Atur biaya admin** pada baris sumber (bisa juga dihapus dari dialog
   itu). Aplikasi menampilkan tanggal bayar berikutnya, sisa hari, dan perkiraan
-  saldo setelah dipotong di daftar serta halaman detail sumber. Tanggal 31 di bulan yang lebih pendek memakai
-  hari terakhir bulan itu. Angka ini hanya perkiraan: tidak ada pemotongan
-  otomatis, transaksinya tetap dicatat seperti biasa.
+  saldo setelah dipotong di daftar serta halaman detail sumber. Tanggal 31 di
+  bulan yang lebih pendek memakai hari terakhir bulan itu.
+- Begitu tanggal bayar tiba, biaya admin **dicatat sebagai pengeluaran
+  sungguhan** berkategori **Biaya Admin** dengan judul `Biaya admin <nama
+  sumber>`, sehingga ikut di ringkasan bulan, statistik, saldo sumber, dan
+  riwayat transaksi. Pencatatan berjalan sekali per bulan per sumber: id
+  dokumennya tetap (`adminfee_<sourceId>_<yyyy-MM>`) dan `adminFeePosted` di
+  dokumen sumber mencegah pembuatan ulang setelah catatannya dihapus. Tidak ada
+  pengisian mundur — biaya dicatat saat aplikasi dibuka pada bulan berjalan dan
+  tanggalnya sudah lewat.
 - Transaksi lama tanpa sumber (dan transaksi yatim) dikelompokkan sebagai
   **Belum diisi**, dihitung dari selisih total keseluruhan.
 - Sumber dana yang masih dipakai transaksi tidak bisa dihapus; ubah dulu sumber
   transaksi tersebut supaya tidak ada data yatim.
-- Daftar transaksi bisa disaring per kategori dan per sumber dana.
-- Kartu ringkasan di home dibagi dua bagian berdampingan: statistik bulan
-  (Dari bulan lalu, Pemasukan, Pengeluaran) di kiri dan rincian saldo tiap
-  sumber dana di kanan; tombol **Kelola** membuka halaman Sumber Dana. Kalau
-  kolomnya terlalu sempit, kedua bagian kembali ditumpuk. Pemisahan ini membuat
-  kartu jauh lebih pendek, supaya header home tidak overflow di layar pendek.
+- Daftar transaksi bisa disaring per kategori dan per sumber dana lewat tombol
+  filter di samping kolom pencarian. Pilihannya muncul di bottom sheet, dan
+  filter yang aktif tampil sebagai chip di bawah pencarian — saat tidak ada
+  filter, area itu tidak memakan ruang.
+- Kartu ringkasan di home menampilkan saldo bulan ini sebagai angka utama,
+  bar tipis proporsi pemasukan vs pengeluaran, lalu dua bagian berdampingan:
+  statistik bulan (Dari bulan lalu, Pemasukan, Pengeluaran) di kiri dan rincian
+  saldo tiap sumber dana di kanan; tombol **Kelola** membuka halaman Sumber
+  Dana. Kalau kolomnya terlalu sempit, kedua bagian kembali ditumpuk.
 - Geser transaksi ke kiri untuk menghapus; tersedia tombol **Urungkan** pada snackbar.
 - Seluruh isi layar home menggulir dalam satu `CustomScrollView`: pemilih bulan,
-  kartu ringkasan, kolom pencarian, bar filter, dan daftar transaksi. Karena
+  kartu ringkasan, kolom pencarian, ringkasan filter aktif, dan daftar
+  transaksi. Karena
   tidak ada lagi header berukuran tetap, halaman ini tidak bisa lagi melaporkan
   `bottom overflowed` walau kartu ringkasan memanjang.
 - Tarik ke bawah di mana pun (pull-to-refresh) atau pakai **Muat ulang** di

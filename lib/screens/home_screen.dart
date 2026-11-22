@@ -43,6 +43,10 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _totalsError;
   int _totalsToken = 0;
 
+  /// Menjaga pencatatan biaya admin tidak berjalan ganda saat stream sumber
+  /// dana memancarkan data lebih dari sekali.
+  bool _syncingAdminFees = false;
+
   String _query = ''; // sudah di-trim dan lowercase
   String? _categoryFilter; // null = semua kategori
   String? _sourceFilter; // null = semua sumber dana
@@ -82,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
       (sources) {
         if (!mounted) return;
         setState(() => _sources = sources);
+        unawaited(_syncAdminFees(sources));
         unawaited(_loadSourceTotals());
       },
       onError: (Object e) {
@@ -93,6 +98,49 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
     );
+  }
+
+  /// Mencatat biaya admin yang sudah jatuh tempo bulan ini sebagai pengeluaran
+  /// sungguhan, sekali per bulan per sumber dana.
+  ///
+  /// Id dokumennya tetap (lihat [TransactionService.postAdminFee]), dan penanda
+  /// `adminFeePosted` di sumber dana mencegah pencatatan ulang setelah
+  /// pengguna menghapus catatannya.
+  Future<void> _syncAdminFees(List<FundingSource> sources) async {
+    if (_syncingAdminFees) return;
+    final now = DateTime.now();
+    final pending = sources
+        .where((s) => s.adminFeePendingMonth(now) != null)
+        .toList();
+    if (pending.isEmpty) return;
+
+    _syncingAdminFees = true;
+    var posted = false;
+    try {
+      for (final source in pending) {
+        final schedule = source.adminFeeSchedule;
+        final sourceId = source.id;
+        if (schedule == null || sourceId == null) continue;
+        final monthKey = FundingSource.monthKey(now.year, now.month);
+        await _service.postAdminFee(
+          source: source,
+          date: schedule.dateInMonth(now.year, now.month),
+          monthKey: monthKey,
+        );
+        await _sourceService.markAdminFeePosted(sourceId, monthKey);
+        posted = true;
+      }
+    } catch (e) {
+      debugPrint('Gagal mencatat biaya admin: $e');
+    } finally {
+      _syncingAdminFees = false;
+    }
+
+    // Catatan baru mengubah pengeluaran bulan ini dan saldo tiap sumber.
+    if (posted && mounted) {
+      unawaited(_loadCarry());
+      unawaited(_loadSourceTotals());
+    }
   }
 
   /// Memuat saldo tiap sumber dana dengan agregasi, tanpa mengunduh dokumen

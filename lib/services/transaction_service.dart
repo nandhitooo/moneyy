@@ -78,6 +78,42 @@ class TransactionService {
     });
   }
 
+  /// Id dokumen biaya admin sengaja dibuat pasti, bukan acak: satu sumber dana
+  /// hanya punya satu catatan per bulan, jadi memuat ulang halaman tidak
+  /// menggandakan pengeluarannya.
+  static String adminFeeDocId(String sourceId, String monthKey) =>
+      'adminfee_${sourceId}_$monthKey';
+
+  /// Mencatat biaya admin bulanan sebagai pengeluaran biasa, sehingga ikut
+  /// terhitung di ringkasan, statistik, dan saldo sumber dana.
+  Future<void> postAdminFee({
+    required FundingSource source,
+    required DateTime date,
+    required String monthKey,
+  }) {
+    final sourceId = source.id;
+    if (sourceId == null) {
+      throw ArgumentError('Sumber dana tanpa id tidak bisa dicatat.');
+    }
+    final tx = TransactionModel(
+      id: adminFeeDocId(sourceId, monthKey),
+      title: 'Biaya admin ${source.name}',
+      amount: source.adminFee,
+      type: TxType.expense,
+      category: adminFeeCategory,
+      date: date,
+      note: 'Dicatat otomatis dari jadwal biaya admin.',
+      sourceId: sourceId,
+      sourceName: source.name,
+      sourceIsCash: source.isCash,
+    );
+    // `set` dengan id tetap: aman dijalankan berulang, tidak menambah dokumen.
+    return _col.doc(tx.id).set({
+      ...tx.toMap(),
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   /// Dipakai untuk undo hapus: menulis ulang transaksi dengan id aslinya.
   Future<void> restore(TransactionModel tx) async {
     await _col.doc(tx.id).set({
