@@ -144,6 +144,48 @@ class _SourcesScreenState extends State<SourcesScreen> {
     }
   }
 
+  /// Menimpa saldo terkini sumber dana dengan angka yang diketik pengguna.
+  ///
+  /// Saldo sumber = saldo awal + pemasukan - pengeluaran. Supaya saldo menjadi
+  /// [target] tanpa menambah transaksi palsu, yang disesuaikan adalah saldo
+  /// awal: `initialBalance = target - (pemasukan - pengeluaran)`. Transaksi
+  /// tidak diubah, jadi riwayatnya tetap utuh.
+  Future<void> _openEditBalance(FundingSource source) async {
+    final total = _totals.forSource(source.id);
+    if (total == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Saldo belum termuat. Tunggu sebentar atau muat ulang.'),
+        ),
+      );
+      return;
+    }
+
+    final target = await showDialog<int>(
+      context: context,
+      builder: (_) => _BalanceDialog(
+        sourceName: source.name,
+        currentBalance: total.net,
+      ),
+    );
+    if (target == null || target == total.net) return;
+
+    try {
+      await _service.update(
+        source.copyWith(
+          initialBalance: target - (total.income - total.expense),
+        ),
+      );
+      if (mounted) unawaited(_loadTotals());
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyimpan saldo: $e')),
+        );
+      }
+    }
+  }
+
   /// Membuka riwayat transaksi sumber ini beserta saldo berjalannya.
   Future<void> _openDetail(FundingSource source) async {
     await Navigator.push(
@@ -289,6 +331,7 @@ class _SourcesScreenState extends State<SourcesScreen> {
               loading: _loadingTotals,
               onOpen: () => _openDetail(source),
               onEdit: () => _openForm(source),
+              onEditBalance: () => _openEditBalance(source),
               onDelete: () => _confirmDelete(source),
             ),
           if (unknown != null)
@@ -461,6 +504,7 @@ class _SourceTile extends StatelessWidget {
   final bool loading;
   final VoidCallback onOpen;
   final VoidCallback onEdit;
+  final VoidCallback onEditBalance;
   final VoidCallback onDelete;
 
   const _SourceTile({
@@ -469,6 +513,7 @@ class _SourceTile extends StatelessWidget {
     required this.loading,
     required this.onOpen,
     required this.onEdit,
+    required this.onEditBalance,
     required this.onDelete,
   });
 
@@ -491,13 +536,16 @@ class _SourceTile extends StatelessWidget {
           PopupMenuButton<String>(
             tooltip: 'Opsi ${source.name}',
             onSelected: (value) {
-              if (value == 'hapus') {
+              if (value == 'saldo') {
+                onEditBalance();
+              } else if (value == 'hapus') {
                 onDelete();
               } else {
                 onEdit();
               }
             },
             itemBuilder: (_) => const [
+              PopupMenuItem(value: 'saldo', child: Text('Ubah saldo')),
               PopupMenuItem(value: 'ubah', child: Text('Ubah')),
               PopupMenuItem(value: 'hapus', child: Text('Hapus')),
             ],
@@ -554,6 +602,88 @@ class _BalanceText extends StatelessWidget {
     return Text(
       rupiah.format(value),
       style: TextStyle(color: color, fontWeight: FontWeight.w600),
+    );
+  }
+}
+
+/// Dialog untuk menimpa saldo terkini satu sumber dana.
+class _BalanceDialog extends StatefulWidget {
+  final String sourceName;
+  final int currentBalance;
+
+  const _BalanceDialog({
+    required this.sourceName,
+    required this.currentBalance,
+  });
+
+  @override
+  State<_BalanceDialog> createState() => _BalanceDialogState();
+}
+
+class _BalanceDialogState extends State<_BalanceDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _balance;
+
+  @override
+  void initState() {
+    super.initState();
+    // Kolom hanya menerima digit, jadi saldo negatif tidak bisa ditampilkan di
+    // sini; angkanya tetap dijelaskan lewat teks bantuan.
+    _balance = TextEditingController(
+      text: widget.currentBalance > 0
+          ? thousandFmt.format(widget.currentBalance)
+          : '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _balance.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+    Navigator.pop(context, ThousandsInputFormatter.parse(_balance.text));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Ubah saldo ${widget.sourceName}'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _balance,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              inputFormatters: [ThousandsInputFormatter()],
+              decoration: InputDecoration(
+                labelText: 'Saldo saat ini',
+                prefixText: 'Rp ',
+                helperText: 'Saldo sekarang '
+                    '${rupiah.format(widget.currentBalance)}. Perubahan '
+                    'menyesuaikan saldo awal, bukan menambah transaksi.',
+                helperMaxLines: 3,
+              ),
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Saldo wajib diisi'
+                  : null,
+              onFieldSubmitted: (_) => _submit(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Batal'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('Simpan')),
+      ],
     );
   }
 }

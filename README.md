@@ -141,6 +141,10 @@ seluruh sumber yang diketahui.
   Angka dihitung dengan agregasi Firestore, jadi tidak mengunduh dokumen
   transaksi. Hasil agregasi bukan realtime: tarik daftar ke bawah atau pakai
   tombol muat ulang untuk memperbarui.
+- Saldo tiap sumber bisa ditimpa langsung lewat menu **Ubah saldo** pada baris
+  sumber dana. Angka yang diketik menjadi saldo terkini, dan aplikasi
+  menyesuaikan saldo awalnya (`target - (pemasukan - pengeluaran)`) supaya
+  tidak ada transaksi palsu; riwayat transaksi tidak berubah.
 - Transaksi lama tanpa sumber (dan transaksi yatim) dikelompokkan sebagai
   **Belum diisi**, dihitung dari selisih total keseluruhan.
 - Sumber dana yang masih dipakai transaksi tidak bisa dihapus; ubah dulu sumber
