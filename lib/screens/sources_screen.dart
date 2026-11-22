@@ -125,6 +125,8 @@ class _SourcesScreenState extends State<SourcesScreen> {
             name: draft.name,
             type: draft.type,
             initialBalance: draft.initialBalance,
+            adminFee: draft.adminFee,
+            adminFeeDay: draft.adminFeeDay,
           ),
         );
       } else {
@@ -133,6 +135,8 @@ class _SourcesScreenState extends State<SourcesScreen> {
             name: draft.name,
             type: draft.type,
             initialBalance: draft.initialBalance,
+            adminFee: draft.adminFee,
+            adminFeeDay: draft.adminFeeDay,
           ),
         );
       }
@@ -140,6 +144,37 @@ class _SourcesScreenState extends State<SourcesScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e')));
+      }
+    }
+  }
+
+  /// Mengatur biaya admin bulanan (nominal + tanggal bayar) lewat dialog
+  /// ringkas, tanpa membuka form sumber dana lengkap.
+  Future<void> _openAdminFee(FundingSource source) async {
+    final draft = await showDialog<_AdminFeeDraft>(
+      context: context,
+      builder: (_) => _AdminFeeDialog(source: source),
+    );
+    if (draft == null) return;
+
+    try {
+      // Dibangun ulang (bukan copyWith) supaya tanggal ikut dikosongkan saat
+      // biaya admin dihapus.
+      await _service.update(
+        FundingSource(
+          id: source.id,
+          name: source.name,
+          type: source.type,
+          initialBalance: source.initialBalance,
+          adminFee: draft.amount,
+          adminFeeDay: draft.dayOfMonth,
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyimpan biaya admin: $e')),
+        );
       }
     }
   }
@@ -331,6 +366,7 @@ class _SourcesScreenState extends State<SourcesScreen> {
               loading: _loadingTotals,
               onOpen: () => _openDetail(source),
               onEdit: () => _openForm(source),
+              onEditAdminFee: () => _openAdminFee(source),
               onEditBalance: () => _openEditBalance(source),
               onDelete: () => _confirmDelete(source),
             ),
@@ -504,6 +540,7 @@ class _SourceTile extends StatelessWidget {
   final bool loading;
   final VoidCallback onOpen;
   final VoidCallback onEdit;
+  final VoidCallback onEditAdminFee;
   final VoidCallback onEditBalance;
   final VoidCallback onDelete;
 
@@ -513,20 +550,31 @@ class _SourceTile extends StatelessWidget {
     required this.loading,
     required this.onOpen,
     required this.onEdit,
+    required this.onEditAdminFee,
     required this.onEditBalance,
     required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
+    final schedule = source.adminFeeSchedule;
+    final now = DateTime.now();
+
     return ListTile(
       leading: CircleAvatar(child: Icon(sourceIcon(source))),
       title: Text(source.name),
+      isThreeLine: schedule != null,
       subtitle: Text(
-        source.initialBalance == 0
-            ? source.type.label
-            : '${source.type.label} • Saldo awal '
-                '${rupiah.format(source.initialBalance)}',
+        [
+          source.initialBalance == 0
+              ? source.type.label
+              : '${source.type.label} • Saldo awal '
+                  '${rupiah.format(source.initialBalance)}',
+          if (schedule != null)
+            'Admin ${rupiah.format(schedule.amount)} tiap tanggal '
+                '${schedule.dayOfMonth} • berikutnya '
+                '${dateFmt.format(schedule.nextDate(now))}',
+        ].join('\n'),
       ),
       onTap: onOpen,
       trailing: Row(
@@ -536,7 +584,9 @@ class _SourceTile extends StatelessWidget {
           PopupMenuButton<String>(
             tooltip: 'Opsi ${source.name}',
             onSelected: (value) {
-              if (value == 'saldo') {
+              if (value == 'admin') {
+                onEditAdminFee();
+              } else if (value == 'saldo') {
                 onEditBalance();
               } else if (value == 'hapus') {
                 onDelete();
@@ -544,10 +594,16 @@ class _SourceTile extends StatelessWidget {
                 onEdit();
               }
             },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'saldo', child: Text('Ubah saldo')),
-              PopupMenuItem(value: 'ubah', child: Text('Ubah')),
-              PopupMenuItem(value: 'hapus', child: Text('Hapus')),
+            itemBuilder: (_) => [
+              // Biaya admin hanya relevan untuk rekening bank dan e-wallet.
+              if (!source.isCash)
+                const PopupMenuItem(
+                  value: 'admin',
+                  child: Text('Atur biaya admin'),
+                ),
+              const PopupMenuItem(value: 'saldo', child: Text('Ubah saldo')),
+              const PopupMenuItem(value: 'ubah', child: Text('Ubah')),
+              const PopupMenuItem(value: 'hapus', child: Text('Hapus')),
             ],
           ),
         ],
@@ -688,12 +744,161 @@ class _BalanceDialogState extends State<_BalanceDialog> {
   }
 }
 
+class _AdminFeeDraft {
+  final int amount;
+  final int? dayOfMonth;
+
+  const _AdminFeeDraft(this.amount, this.dayOfMonth);
+}
+
+/// Dialog ringkas untuk mengatur biaya admin bulanan satu sumber dana.
+///
+/// Nominal 0 dianggap "tanpa biaya admin", jadi tanggalnya ikut dikosongkan
+/// saat disimpan.
+class _AdminFeeDialog extends StatefulWidget {
+  final FundingSource source;
+
+  const _AdminFeeDialog({required this.source});
+
+  @override
+  State<_AdminFeeDialog> createState() => _AdminFeeDialogState();
+}
+
+class _AdminFeeDialogState extends State<_AdminFeeDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _amount;
+  int? _day;
+
+  int get _amountValue => ThousandsInputFormatter.parse(_amount.text);
+
+  @override
+  void initState() {
+    super.initState();
+    final source = widget.source;
+    _amount = TextEditingController(
+      text: source.adminFee == 0 ? '' : thousandFmt.format(source.adminFee),
+    );
+    _day = source.adminFeeDay;
+  }
+
+  @override
+  void dispose() {
+    _amount.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+    final amount = _amountValue;
+    Navigator.pop(
+      context,
+      _AdminFeeDraft(amount, amount == 0 ? null : _day),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final schedule = widget.source.adminFeeSchedule;
+    return AlertDialog(
+      scrollable: true,
+      title: Text('Biaya admin ${widget.source.name}'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _amount,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              inputFormatters: [ThousandsInputFormatter()],
+              decoration: InputDecoration(
+                labelText: 'Jumlah per bulan',
+                prefixText: 'Rp ',
+                helperText: schedule == null
+                    ? 'Isi 0 atau kosongkan bila tidak ada biaya admin.'
+                    : 'Sekarang ${rupiah.format(schedule.amount)} tiap '
+                        'tanggal ${schedule.dayOfMonth}.',
+                helperMaxLines: 2,
+              ),
+              onChanged: (_) => setState(() {}),
+              onFieldSubmitted: (_) => _submit(),
+            ),
+            const SizedBox(height: 12),
+            FormField<int?>(
+              initialValue: _day,
+              validator: (_) => _amountValue > 0 && _day == null
+                  ? 'Pilih tanggal bayar'
+                  : null,
+              builder: (field) => InputDecorator(
+                decoration: InputDecoration(
+                  labelText: 'Tanggal bayar',
+                  errorText: field.errorText,
+                  helperText: 'Saldo diperkirakan terpotong tiap tanggal ini.',
+                  helperMaxLines: 2,
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int?>(
+                    isExpanded: true,
+                    value: _day,
+                    hint: const Text('Pilih tanggal'),
+                    items: [
+                      for (var day = 1; day <= 31; day++)
+                        DropdownMenuItem(
+                          value: day,
+                          child: Text('Tanggal $day'),
+                        ),
+                    ],
+                    onChanged: (value) {
+                      setState(() => _day = value);
+                      field.didChange(value);
+                    },
+                  ),
+                ),
+              ),
+            ),
+            if (schedule != null) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () => Navigator.pop(
+                    context,
+                    const _AdminFeeDraft(0, null),
+                  ),
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Hapus biaya admin'),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Batal'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('Simpan')),
+      ],
+    );
+  }
+}
+
 class _SourceDraft {
   final String name;
   final FundingSourceType type;
   final int initialBalance;
+  final int adminFee;
+  final int? adminFeeDay;
 
-  const _SourceDraft(this.name, this.type, this.initialBalance);
+  const _SourceDraft(
+    this.name,
+    this.type,
+    this.initialBalance,
+    this.adminFee,
+    this.adminFeeDay,
+  );
 }
 
 /// Dialog tambah/ubah sumber dana.
@@ -710,7 +915,12 @@ class _SourceFormDialogState extends State<_SourceFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _name;
   late final TextEditingController _initialBalance;
+  late final TextEditingController _adminFee;
   late FundingSourceType _type;
+  int? _adminFeeDay;
+
+  /// Nominal biaya admin yang sedang diketik, dipakai validator tanggal.
+  int get _adminFeeValue => ThousandsInputFormatter.parse(_adminFee.text);
 
   @override
   void initState() {
@@ -722,23 +932,32 @@ class _SourceFormDialogState extends State<_SourceFormDialog> {
     _initialBalance = TextEditingController(
       text: initial == 0 ? '' : thousandFmt.format(initial),
     );
+    final fee = existing?.adminFee ?? 0;
+    _adminFee = TextEditingController(
+      text: fee == 0 ? '' : thousandFmt.format(fee),
+    );
+    _adminFeeDay = existing?.adminFeeDay;
   }
 
   @override
   void dispose() {
     _name.dispose();
     _initialBalance.dispose();
+    _adminFee.dispose();
     super.dispose();
   }
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
+    final isCash = _type == FundingSourceType.cash;
     Navigator.pop(
       context,
       _SourceDraft(
         _name.text.trim(),
         _type,
         ThousandsInputFormatter.parse(_initialBalance.text),
+        isCash ? 0 : _adminFeeValue,
+        isCash ? null : _adminFeeDay,
       ),
     );
   }
@@ -747,6 +966,8 @@ class _SourceFormDialogState extends State<_SourceFormDialog> {
   Widget build(BuildContext context) {
     final isEdit = widget.existing != null;
     return AlertDialog(
+      // Lima kolom bisa melebihi tinggi dialog di layar pendek.
+      scrollable: true,
       title: Text(isEdit ? 'Ubah Sumber Dana' : 'Sumber Dana Baru'),
       content: Form(
         key: _formKey,
@@ -798,6 +1019,56 @@ class _SourceFormDialogState extends State<_SourceFormDialog> {
               ),
               onFieldSubmitted: (_) => _submit(),
             ),
+            // Biaya admin tidak relevan untuk uang tunai, jadi kolomnya hanya
+            // tampil untuk rekening bank dan e-wallet.
+            if (_type != FundingSourceType.cash) ...[
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _adminFee,
+                keyboardType: TextInputType.number,
+                inputFormatters: [ThousandsInputFormatter()],
+                decoration: const InputDecoration(
+                  labelText: 'Biaya admin / bulan',
+                  prefixText: 'Rp ',
+                  helperText: 'Kosongkan bila tidak ada biaya admin.',
+                ),
+                onChanged: (_) => setState(() {}),
+                onFieldSubmitted: (_) => _submit(),
+              ),
+              const SizedBox(height: 12),
+              FormField<int?>(
+                initialValue: _adminFeeDay,
+                validator: (_) => _adminFeeValue > 0 && _adminFeeDay == null
+                    ? 'Pilih tanggal bayar'
+                    : null,
+                builder: (field) => InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: 'Tanggal bayar',
+                    errorText: field.errorText,
+                    helperText: 'Saldo diperkirakan terpotong tiap tanggal ini.',
+                    helperMaxLines: 2,
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int?>(
+                      isExpanded: true,
+                      value: _adminFeeDay,
+                      hint: const Text('Pilih tanggal'),
+                      items: [
+                        for (var day = 1; day <= 31; day++)
+                          DropdownMenuItem(
+                            value: day,
+                            child: Text('Tanggal $day'),
+                          ),
+                      ],
+                      onChanged: (value) {
+                        setState(() => _adminFeeDay = value);
+                        field.didChange(value);
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

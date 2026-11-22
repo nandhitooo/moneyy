@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'admin_fee_schedule.dart';
+
 /// Jenis sumber dana.
 ///
 /// Nilai [name] dipakai sebagai field `type` di Firestore, jadi jangan diubah
@@ -42,11 +44,19 @@ class FundingSource {
   /// Saldo awal dalam Rupiah, ikut dihitung pada saldo sumber ini.
   final int initialBalance;
 
+  /// Biaya admin bulanan dalam Rupiah. 0 berarti tidak ada biaya admin.
+  final int adminFee;
+
+  /// Tanggal potong biaya admin (1-31). Null bila belum diatur.
+  final int? adminFeeDay;
+
   const FundingSource({
     this.id,
     required this.name,
     this.type = FundingSourceType.bank,
     this.initialBalance = 0,
+    this.adminFee = 0,
+    this.adminFeeDay,
   });
 
   factory FundingSource.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -56,7 +66,19 @@ class FundingSource {
       name: (d['name'] as String?) ?? 'Tanpa nama',
       type: FundingSourceType.fromDoc(d),
       initialBalance: (d['initialBalance'] as num?)?.toInt() ?? 0,
+      adminFee: (d['adminFee'] as num?)?.toInt() ?? 0,
+      adminFeeDay: (d['adminFeeDay'] as num?)?.toInt(),
     );
+  }
+
+  /// Jadwal biaya admin, atau null bila nominal atau tanggalnya belum diatur.
+  ///
+  /// Tanggal yang tersimpan di luar 1-31 diabaikan supaya dokumen lama yang
+  /// rusak tidak membuat layar error.
+  AdminFeeSchedule? get adminFeeSchedule {
+    final day = adminFeeDay;
+    if (adminFee <= 0 || day == null || day < 1 || day > 31) return null;
+    return AdminFeeSchedule(amount: adminFee, dayOfMonth: day);
   }
 
   /// True bila sumbernya uang tunai. Transaksi menyalin penanda ini, jadi
@@ -75,12 +97,16 @@ class FundingSource {
     String? name,
     FundingSourceType? type,
     int? initialBalance,
+    int? adminFee,
+    int? adminFeeDay,
   }) =>
       FundingSource(
         id: id ?? this.id,
         name: name ?? this.name,
         type: type ?? this.type,
         initialBalance: initialBalance ?? this.initialBalance,
+        adminFee: adminFee ?? this.adminFee,
+        adminFeeDay: adminFeeDay ?? this.adminFeeDay,
       );
 
   /// `isCash` tetap ditulis supaya versi aplikasi lama dan data transaksi tetap
@@ -90,5 +116,7 @@ class FundingSource {
         'type': type.name,
         'isCash': isCash,
         'initialBalance': initialBalance,
+        'adminFee': adminFee,
+        'adminFeeDay': adminFeeDay,
       };
 }

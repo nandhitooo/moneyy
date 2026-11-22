@@ -62,6 +62,7 @@ users/{uid}/transactions/{id}
 
 users/{uid}/sources/{id}
   name, type ("cash" | "bank" | "eWallet"), initialBalance (int, Rupiah),
+  adminFee (int, Rupiah per bulan), adminFeeDay (1-31, opsional),
   isCash (bool, diturunkan dari type), createdAt
 ```
 
@@ -145,6 +146,13 @@ seluruh sumber yang diketahui.
   sumber dana. Angka yang diketik menjadi saldo terkini, dan aplikasi
   menyesuaikan saldo awalnya (`target - (pemasukan - pengeluaran)`) supaya
   tidak ada transaksi palsu; riwayat transaksi tidak berubah.
+- Sumber non-tunai bisa diberi **biaya admin bulanan**: nominal dan tanggal
+  bayar 1-31, diisi sendiri oleh pengguna lewat form sumber dana atau menu
+  ⋮ → **Atur biaya admin** pada baris sumber (bisa juga dihapus dari dialog
+  itu). Aplikasi menampilkan tanggal bayar berikutnya, sisa hari, dan perkiraan
+  saldo setelah dipotong di daftar serta halaman detail sumber. Tanggal 31 di bulan yang lebih pendek memakai
+  hari terakhir bulan itu. Angka ini hanya perkiraan: tidak ada pemotongan
+  otomatis, transaksinya tetap dicatat seperti biasa.
 - Transaksi lama tanpa sumber (dan transaksi yatim) dikelompokkan sebagai
   **Belum diisi**, dihitung dari selisih total keseluruhan.
 - Sumber dana yang masih dipakai transaksi tidak bisa dihapus; ubah dulu sumber

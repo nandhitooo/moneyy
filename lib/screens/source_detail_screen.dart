@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../models/admin_fee_schedule.dart';
 import '../models/funding_source.dart';
 import '../models/source_ledger.dart';
 import '../models/transaction_model.dart';
@@ -147,11 +148,31 @@ class _LedgerHeader extends StatelessWidget {
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: cs.onPrimaryContainer),
             ),
+            if (source.adminFeeSchedule != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _adminFeeText(source.adminFeeSchedule!, ledger.balance),
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: cs.onPrimaryContainer),
+              ),
+            ],
           ],
         ),
       ),
     );
   }
+}
+
+/// Ringkasan biaya admin sumber dana: nominal, tanggal potong berikutnya, sisa
+/// hari, dan perkiraan saldo setelah dipotong.
+String _adminFeeText(AdminFeeSchedule schedule, int balance) {
+  final now = DateTime.now();
+  final days = schedule.daysUntil(now);
+  final when = days == 0 ? 'hari ini' : '$days hari lagi';
+  return 'Biaya admin ${rupiah.format(schedule.amount)} • dipotong '
+      '${dateFmt.format(schedule.nextDate(now))} ($when) • '
+      'perkiraan saldo setelah potong '
+      '${rupiah.format(schedule.balanceAfter(balance))}';
 }
 
 /// Satu transaksi dengan saldo berjalan di bawah nominalnya.
