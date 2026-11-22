@@ -30,14 +30,15 @@ class MonthSelector extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: Chip(
         side: BorderSide.none,
-        backgroundColor: cs.secondaryContainer,
+        backgroundColor: cs.surfaceContainerHighest.withValues(alpha: 0.7),
         label: SizedBox(
           width: 150,
           child: Text(
             monthFmt.format(month),
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: cs.onSecondaryContainer,
+              color: cs.onSurface,
+              fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
           ),

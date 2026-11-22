@@ -29,8 +29,8 @@ class EmptyStateView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon,
-                size: 72, color: cs.onSurfaceVariant.withValues(alpha: 0.5)),
-            const SizedBox(height: 12),
+                size: 56, color: cs.onSurfaceVariant.withValues(alpha: 0.45)),
+            const SizedBox(height: 16),
             Text(
               title,
               textAlign: TextAlign.center,
@@ -91,8 +91,8 @@ class ErrorView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.cloud_off, size: 64, color: cs.error),
-            const SizedBox(height: 12),
+            Icon(Icons.cloud_off_outlined, size: 48, color: cs.error),
+            const SizedBox(height: 16),
             Text(
               'Gagal memuat data',
               style: Theme.of(context).textTheme.titleMedium,

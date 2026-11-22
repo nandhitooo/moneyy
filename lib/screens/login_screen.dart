@@ -65,109 +65,101 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     return Scaffold(
-      body: Container(
-        // Gradasi halus di belakang form login.
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [cs.primaryContainer.withValues(alpha: 0.45), cs.surface],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: AutofillGroup(
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const _LoginHeader(),
-                        const SizedBox(height: 4),
-                        Text(
-                          _isLogin ? 'Masuk ke akunmu' : 'Buat akun baru',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: cs.onSurfaceVariant),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: AutofillGroup(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const _LoginHeader(),
+                      const SizedBox(height: 8),
+                      Text(
+                        _isLogin ? 'Masuk ke akunmu' : 'Buat akun baru',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(color: cs.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 32),
+                      TextFormField(
+                        controller: _email,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        autofillHints: const [AutofillHints.email],
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
+                          prefixIcon: Icon(Icons.mail_outline),
                         ),
-                        const SizedBox(height: 32),
-                        TextFormField(
-                          controller: _email,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          autofillHints: const [AutofillHints.email],
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            prefixIcon: Icon(Icons.email_outlined),
-                          ),
-                          validator: (v) => (v == null || !v.contains('@'))
-                              ? 'Masukkan email yang valid'
-                              : null,
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _password,
-                          obscureText: _obscure,
-                          textInputAction: TextInputAction.done,
-                          autofillHints: [
-                            _isLogin
-                                ? AutofillHints.password
-                                : AutofillHints.newPassword,
-                          ],
-                          onFieldSubmitted: (_) {
-                            if (!_loading) unawaited(_submit());
-                          },
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            suffixIcon: IconButton(
-                              tooltip: _obscure
-                                  ? 'Tampilkan password'
-                                  : 'Sembunyikan password',
-                              icon: Icon(
-                                _obscure
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                              ),
-                              onPressed: () =>
-                                  setState(() => _obscure = !_obscure),
-                            ),
-                          ),
-                          validator: (v) => (v == null || v.length < 6)
-                              ? 'Minimal 6 karakter'
-                              : null,
-                        ),
-                        if (_error != null) ...[
-                          const SizedBox(height: 12),
-                          _ErrorCard(message: _error!),
+                        validator: (v) => (v == null || !v.contains('@'))
+                            ? 'Masukkan email yang valid'
+                            : null,
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _password,
+                        obscureText: _obscure,
+                        textInputAction: TextInputAction.done,
+                        autofillHints: [
+                          _isLogin
+                              ? AutofillHints.password
+                              : AutofillHints.newPassword,
                         ],
-                        const SizedBox(height: 24),
-                        FilledButton(
-                          onPressed: _loading ? null : _submit,
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                        onFieldSubmitted: (_) {
+                          if (!_loading) unawaited(_submit());
+                        },
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            tooltip: _obscure
+                                ? 'Tampilkan password'
+                                : 'Sembunyikan password',
+                            icon: Icon(
+                              _obscure
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                            ),
+                            onPressed: () =>
+                                setState(() => _obscure = !_obscure),
                           ),
-                          child: _loading
-                              ? const _ButtonSpinner()
-                              : Text(_isLogin ? 'Masuk' : 'Daftar'),
                         ),
-                        const SizedBox(height: 16),
-                        TextButton(
-                          onPressed: _loading ? null : _toggleMode,
-                          child: Text(
-                            _isLogin
-                                ? 'Belum punya akun? Daftar'
-                                : 'Sudah punya akun? Masuk',
-                          ),
-                        ),
+                        validator: (v) => (v == null || v.length < 6)
+                            ? 'Minimal 6 karakter'
+                            : null,
+                      ),
+                      if (_error != null) ...[
+                        const SizedBox(height: 14),
+                        _ErrorCard(message: _error!),
                       ],
-                    ),
+                      const SizedBox(height: 24),
+                      FilledButton(
+                        onPressed: _loading ? null : _submit,
+                        child: _loading
+                            ? const _ButtonSpinner()
+                            : Text(_isLogin ? 'Masuk' : 'Daftar'),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: _loading ? null : _toggleMode,
+                        style: TextButton.styleFrom(
+                          foregroundColor: cs.onSurfaceVariant,
+                        ),
+                        child: Text(
+                          _isLogin
+                              ? 'Belum punya akun? Daftar'
+                              : 'Sudah punya akun? Masuk',
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -179,51 +171,41 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-/// Logo bulat plus nama aplikasi.
+/// Tanda aplikasi: satu kotak berwarna aksen, tanpa bayangan.
 class _LoginHeader extends StatelessWidget {
   const _LoginHeader();
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     return Column(
       children: [
-        Center(
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: cs.primaryContainer,
-              boxShadow: [
-                BoxShadow(
-                  color: cs.primary.withValues(alpha: 0.25),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.account_balance_wallet,
-              size: 44,
-              color: cs.onPrimaryContainer,
-            ),
+        Container(
+          height: 64,
+          width: 64,
+          decoration: BoxDecoration(
+            color: cs.primary,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Icon(
+            Icons.account_balance_wallet_outlined,
+            size: 30,
+            color: cs.onPrimary,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         Text(
           'Catatan Keuangan',
           textAlign: TextAlign.center,
-          style: Theme.of(context)
-              .textTheme
-              .headlineMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: theme.textTheme.headlineMedium,
         ),
       ],
     );
   }
 }
 
-/// Error dalam kartu berwarna, bukan teks polos.
+/// Error sebagai garis tipis berwarna, bukan kartu penuh.
 class _ErrorCard extends StatelessWidget {
   final String message;
 
@@ -231,21 +213,23 @@ class _ErrorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: cs.errorContainer,
-        borderRadius: BorderRadius.circular(12),
+        color: cs.errorContainer.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: cs.error.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, size: 20, color: cs.onErrorContainer),
-          const SizedBox(width: 8),
+          Icon(Icons.error_outline, size: 18, color: cs.error),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               message,
-              style: TextStyle(color: cs.onErrorContainer, fontSize: 13),
+              style: theme.textTheme.bodySmall?.copyWith(color: cs.onErrorContainer),
             ),
           ),
         ],

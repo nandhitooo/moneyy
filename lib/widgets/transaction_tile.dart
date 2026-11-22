@@ -4,6 +4,10 @@ import '../models/transaction_model.dart';
 import '../utils/helpers.dart';
 
 /// Satu baris transaksi. Geser ke kiri untuk menghapus.
+///
+/// Tampilannya sengaja datar: ikon tipis tanpa lingkaran, judul tegas, dan
+/// metadata redup. Warna hanya dipakai pada nominal agar mata langsung
+/// tertuju ke angka.
 class TransactionTile extends StatelessWidget {
   final TransactionModel transaction;
   final VoidCallback onTap;
@@ -18,7 +22,8 @@ class TransactionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final isIncome = transaction.isIncome;
     final color = isIncome ? incomeColor(context) : expenseColor(context);
     final signedAmount =
@@ -42,26 +47,38 @@ class TransactionTile extends StatelessWidget {
         excludeSemantics: true,
         child: ListTile(
           onTap: onTap,
+          shape: const RoundedRectangleBorder(),
+          minLeadingWidth: 24,
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          leading: CircleAvatar(
-            backgroundColor: color.withValues(alpha: 0.12),
-            child: Icon(categoryIcon(transaction.category), color: color),
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          leading: Icon(
+            categoryIcon(transaction.category),
+            size: 20,
+            color: cs.onSurfaceVariant,
           ),
           title: Text(
             transaction.title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.w600),
+            style: theme.textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w500,
+              letterSpacing: -0.1,
+            ),
           ),
           subtitle: Text(
             subtitle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: cs.onSurfaceVariant,
+            ),
           ),
           trailing: Text(
             signedAmount,
-            style: TextStyle(color: color, fontWeight: FontWeight.w600),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ),
@@ -79,7 +96,7 @@ class _DeleteBackground extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.errorContainer,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
       ),
       alignment: Alignment.centerRight,
       padding: const EdgeInsets.only(right: 24),

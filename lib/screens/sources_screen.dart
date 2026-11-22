@@ -399,13 +399,18 @@ class _BalanceHeader extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      color: cs.primaryContainer,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Total saldo', style: TextStyle(color: cs.onPrimaryContainer)),
+            Text(
+              'Total saldo',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: cs.onSurfaceVariant,
+                letterSpacing: 0.3,
+              ),
+            ),
             const SizedBox(height: 4),
             if (loading)
               const Padding(
@@ -421,8 +426,9 @@ class _BalanceHeader extends StatelessWidget {
                   child: Text(
                     rupiah.format(overall.net),
                     style: theme.textTheme.headlineMedium?.copyWith(
-                      color: cs.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
+                      color: cs.onSurface,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -1.2,
                     ),
                   ),
                 ),
@@ -432,19 +438,17 @@ class _BalanceHeader extends StatelessWidget {
               children: [
                 Expanded(
                   child: MiniStat(
-                    icon: Icons.payments_outlined,
                     label: 'Tunai',
                     value: rupiah.format(cash),
-                    color: cs.onPrimaryContainer,
+                    color: cs.onSurfaceVariant,
                     tooltip: 'Saldo semua sumber dana bertanda uang tunai.',
                   ),
                 ),
                 Expanded(
                   child: MiniStat(
-                    icon: Icons.account_balance_wallet_outlined,
                     label: 'Non-tunai',
                     value: rupiah.format(nonCash),
-                    color: cs.onPrimaryContainer,
+                    color: cs.onSurfaceVariant,
                     tooltip: 'Saldo sumber non-tunai: rekening bank, e-wallet, '
                         'dan sejenisnya.',
                   ),
@@ -457,7 +461,7 @@ class _BalanceHeader extends StatelessWidget {
               'pengeluaran. Saldo dihitung di perangkat dari data tersimpan, '
               'jadi tidak perlu mencatat transaksi palsu.',
               style: theme.textTheme.bodySmall
-                  ?.copyWith(color: cs.onPrimaryContainer),
+                  ?.copyWith(color: cs.onSurfaceVariant),
             ),
           ],
         ),

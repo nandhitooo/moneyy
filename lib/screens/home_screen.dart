@@ -215,8 +215,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _matchesSource(TransactionModel transaction) {
     if (_sourceFilter == null) return true;
-    if (_sourceFilter == unknownSourceFilterId)
+    if (_sourceFilter == unknownSourceFilterId) {
       return transaction.sourceId == null;
+    }
     return transaction.sourceId == _sourceFilter;
   }
 
@@ -306,6 +307,41 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// Menghapus filter kategori dan sumber dana tanpa mengosongkan pencarian.
+  void _clearFilters() {
+    setState(() {
+      _categoryFilter = null;
+      _sourceFilter = null;
+    });
+  }
+
+  int get _activeFilterCount =>
+      (_categoryFilter == null ? 0 : 1) + (_sourceFilter == null ? 0 : 1);
+
+  /// Membuka pilihan filter di bottom sheet, menggantikan dua baris chip yang
+  /// dulu selalu memakan ruang di bawah kolom pencarian.
+  Future<void> _openFilters(List<TransactionModel> all) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => TransactionFilterSheet(
+        category: _categoryFilter,
+        sourceId: _sourceFilter,
+        sources: _sources,
+        usedCategories: all.map((t) => t.category).toSet(),
+        hasUnknown: all.any((t) => t.sourceId == null),
+        onChanged: (category, sourceId) {
+          if (!mounted) return;
+          setState(() {
+            _categoryFilter = category;
+            _sourceFilter = sourceId;
+          });
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -375,31 +411,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     controller: _searchCtrl,
                     onChanged: (value) =>
                         setState(() => _query = value.trim().toLowerCase()),
+                    onOpenFilters: () => _openFilters(all),
+                    activeFilterCount: _activeFilterCount,
                   ),
                 ),
-                // Kedua bar filter mengembalikan ListView horizontal, jadi
-                // tingginya harus dibatasi.
+                // Ringkasan filter aktif: nol tinggi saat tidak menyaring,
+                // sehingga layar tetap lapang.
                 SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: 44,
-                    child: CategoryFilterBar(
-                      selected: _categoryFilter,
-                      usedCategories: all.map((t) => t.category).toSet(),
-                      onSelected: (category) =>
-                          setState(() => _categoryFilter = category),
-                    ),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: 44,
-                    child: SourceFilterBar(
-                      selectedId: _sourceFilter,
-                      sources: _sources,
-                      hasUnknown: all.any((t) => t.sourceId == null),
-                      onSelected: (sourceId) =>
-                          setState(() => _sourceFilter = sourceId),
-                    ),
+                  child: ActiveTransactionFilters(
+                    category: _categoryFilter,
+                    sourceId: _sourceFilter,
+                    sources: _sources,
+                    onCategory: (category) =>
+                        setState(() => _categoryFilter = category),
+                    onSource: (sourceId) =>
+                        setState(() => _sourceFilter = sourceId),
+                    onReset: _clearFilters,
                   ),
                 ),
                 if (all.isEmpty)

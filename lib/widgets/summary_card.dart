@@ -7,11 +7,13 @@ import '../utils/helpers.dart';
 
 /// Kartu saldo bulan ini.
 ///
-/// Isinya dibagi dua bagian berdampingan supaya kartu tetap pendek: statistik
-/// bulan (kiri) dan rincian saldo tiap sumber dana (kanan). Sebelumnya keduanya
-/// ditumpuk ke bawah sehingga kartu bisa melebihi tinggi layar dan memicu
-/// "bottom overflowed". Pada lebar yang sangat sempit keduanya kembali
-/// ditumpuk.
+/// Susunannya, dari atas ke bawah:
+/// 1. saldo besar sebagai fokus utama,
+/// 2. bar tipis proporsi pemasukan vs pengeluaran,
+/// 3. statistik bulan (kiri) dan rincian saldo tiap sumber (kanan).
+///
+/// Bagian 3 dibuat dua kolom supaya kartu tetap pendek; pada lebar yang sangat
+/// sempit keduanya kembali ditumpuk.
 class SummaryCard extends StatelessWidget {
   final MonthSummary summary;
 
@@ -31,7 +33,7 @@ class SummaryCard extends StatelessWidget {
   /// terlalu sempit untuk angka rupiah.
   ///
   /// Diukur dari lebar konten, bukan lebar layar: di layar 360dp kartu ini
-  /// kehilangan 32dp margin dan 32dp padding sehingga hanya tersisa 296dp.
+  /// kehilangan 32dp margin dan 40dp padding sehingga hanya tersisa 288dp.
   static const _twoColumnMinWidth = 240;
 
   const SummaryCard({
@@ -50,29 +52,29 @@ class SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final spentShare = summary.income > 0 && summary.expense > 0
+        ? (summary.expense / summary.income * 100).round()
+        : null;
 
     final stats = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         MiniStat(
-          icon: Icons.savings,
           label: 'Dari bulan lalu',
           value: rupiah.format(summary.carry),
-          color: cs.onPrimaryContainer,
+          color: cs.onSurfaceVariant,
           tooltip: 'Sisa saldo dari bulan-bulan sebelumnya '
               'yang otomatis dibawa ke bulan ini.',
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         MiniStat(
-          icon: Icons.arrow_downward,
           label: 'Pemasukan',
           value: rupiah.format(summary.income),
           color: incomeColor(context),
           tooltip: 'Total uang masuk selama bulan ini.',
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         MiniStat(
-          icon: Icons.arrow_upward,
           label: 'Pengeluaran',
           value: rupiah.format(summary.expense),
           color: expenseColor(context),
@@ -96,30 +98,66 @@ class SummaryCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      color: cs.primaryContainer,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Saldo bulan ini',
-                style: TextStyle(color: cs.onPrimaryContainer)),
-            const SizedBox(height: 4),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Saldo bulan ini',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: cs.onSurfaceVariant,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ),
+                if (spentShare != null)
+                  Text(
+                    '$spentShare% terpakai',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontSize: 10.5,
+                      color: cs.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
             Semantics(
               label: 'Saldo bulan ini ${rupiah.format(summary.balance)}',
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
-                child: Text(
-                  rupiah.format(summary.balance),
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Rp ',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                      TextSpan(text: thousandFmt.format(summary.balance)),
+                    ],
+                  ),
                   style: theme.textTheme.headlineMedium?.copyWith(
-                    color: cs.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
+                    color: cs.onSurface,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -1.2,
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            _FlowBar(income: summary.income, expense: summary.expense),
+            const SizedBox(height: 14),
             LayoutBuilder(
               builder: (context, constraints) {
                 if (balances == null) return stats;
@@ -137,28 +175,22 @@ class SummaryCard extends StatelessWidget {
                   );
                 }
 
-                // Tanpa IntrinsicHeight: memaksa tinggi sama membuat header
-                // bagian kanan ikut teregang, baris saldo terdorong ke bawah,
-                // dan kartu jadi lebih tinggi dari sebelumnya. Kedua bagian
-                // disejajarkan dari atas dan pemisahnya dibuat dengan border
-                // yang tidak butuh tinggi pasti.
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(child: stats),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           border: Border(
                             left: BorderSide(
-                              color:
-                                  cs.onPrimaryContainer.withValues(alpha: 0.2),
+                              color: cs.outlineVariant.withValues(alpha: 0.7),
                             ),
                           ),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 12),
+                          padding: const EdgeInsets.only(left: 16),
                           child: balances,
                         ),
                       ),
@@ -175,8 +207,62 @@ class SummaryCard extends StatelessWidget {
 
   Widget _sectionDivider(ColorScheme cs) => Divider(
         height: 1,
-        color: cs.onPrimaryContainer.withValues(alpha: 0.2),
+        color: cs.outlineVariant.withValues(alpha: 0.7),
       );
+}
+
+/// Bar tipis proporsi uang masuk dan uang keluar bulan ini.
+///
+/// Tanpa teks, jadi tidak menambah tinggi kartu; maknanya dibaca dari warna
+/// dan dari angka pemasukan/pengeluaran di bawahnya.
+class _FlowBar extends StatelessWidget {
+  final int income;
+  final int expense;
+
+  const _FlowBar({required this.income, required this.expense});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final hasIncome = income > 0;
+    final hasExpense = expense > 0;
+
+    final bar = Container(
+      height: 4,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(2),
+      ),
+      child: !hasIncome && !hasExpense
+          ? null
+          : Row(
+              children: [
+                if (hasIncome)
+                  Expanded(
+                    flex: income,
+                    child: ColoredBox(
+                      color: incomeColor(context).withValues(alpha: 0.85),
+                    ),
+                  ),
+                if (hasIncome && hasExpense) const SizedBox(width: 2),
+                if (hasExpense)
+                  Expanded(
+                    flex: expense,
+                    child: ColoredBox(
+                      color: expenseColor(context).withValues(alpha: 0.85),
+                    ),
+                  ),
+              ],
+            ),
+    );
+
+    return Semantics(
+      label: 'Pemasukan ${rupiah.format(income)}, '
+          'pengeluaran ${rupiah.format(expense)}',
+      child: bar,
+    );
+  }
 }
 
 /// Rincian saldo tiap sumber dana dalam satu kolom.
@@ -208,17 +294,18 @@ class _SourceBalances extends StatelessWidget {
   /// dan di tata letak dua kolom itu menghabiskan hampir seluruh lebar bagian
   /// kanan sampai labelnya terpotong jadi banyak baris.
   ButtonStyle _tightButton(ColorScheme cs) => TextButton.styleFrom(
-        foregroundColor: cs.onPrimaryContainer,
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        foregroundColor: cs.primary,
+        padding: const EdgeInsets.symmetric(horizontal: 2),
         minimumSize: Size.zero,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: VisualDensity.compact,
-        textStyle: const TextStyle(fontSize: 11),
+        textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
       );
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final header = Row(
       children: [
         Expanded(
@@ -226,10 +313,11 @@ class _SourceBalances extends StatelessWidget {
             'Saldo per sumber',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
+            style: theme.textTheme.labelSmall?.copyWith(
               fontSize: 11,
-              color: cs.onPrimaryContainer,
               fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
+              color: cs.onSurfaceVariant,
             ),
           ),
         ),
@@ -247,9 +335,10 @@ class _SourceBalances extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           header,
+          const SizedBox(height: 4),
           Text(
             'Gagal memuat saldo per sumber.',
-            style: TextStyle(color: cs.onPrimaryContainer),
+            style: theme.textTheme.bodySmall,
           ),
           if (onRetry != null)
             Align(
@@ -263,9 +352,9 @@ class _SourceBalances extends StatelessWidget {
           if (error != null)
             SelectableText(
               error!,
-              style: TextStyle(
+              style: theme.textTheme.labelSmall?.copyWith(
                 fontSize: 11,
-                color: cs.onPrimaryContainer.withValues(alpha: 0.8),
+                color: cs.onSurfaceVariant,
               ),
             ),
         ],
@@ -294,10 +383,11 @@ class _SourceBalances extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         header,
+        const SizedBox(height: 4),
         if (loading)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
-            child: LinearProgressIndicator(minHeight: 4),
+            child: LinearProgressIndicator(minHeight: 2),
           )
         else
           for (final item in shown)
@@ -322,9 +412,9 @@ class _SourceBalances extends StatelessWidget {
         if (totals?.computedOnClient ?? false)
           Text(
             'Saldo dihitung di perangkat karena agregasi Firestore belum siap.',
-            style: TextStyle(
+            style: theme.textTheme.labelSmall?.copyWith(
               fontSize: 11,
-              color: cs.onPrimaryContainer.withValues(alpha: 0.8),
+              color: cs.onSurfaceVariant,
             ),
           ),
       ],
@@ -344,9 +434,8 @@ class _SourceBalanceItem {
   });
 }
 
-/// Satu baris saldo sumber: ikon, lalu nama sumber dengan angkanya di bawah.
-///
-/// Nama dan angka disusun dua baris supaya nominal rupiah panjang tidak
+/// Satu baris saldo sumber: ikon tipis, lalu nama sumber dengan angkanya di
+/// bawah. Nama dan angka disusun dua baris supaya nominal rupiah panjang tidak
 /// terpotong saat kolomnya hanya selebar separuh kartu.
 class _SourceBalanceRow extends StatelessWidget {
   final IconData icon;
@@ -363,12 +452,13 @@ class _SourceBalanceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final color = balance > 0
         ? incomeColor(context)
         : balance < 0
             ? expenseColor(context)
-            : cs.onPrimaryContainer;
+            : cs.onSurfaceVariant;
 
     return InkWell(
       onTap: onTap,
@@ -380,10 +470,10 @@ class _SourceBalanceRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Icon(icon, size: 16, color: cs.onPrimaryContainer),
+              padding: const EdgeInsets.only(top: 1),
+              child: Icon(icon, size: 15, color: cs.onSurfaceVariant),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 7),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,8 +482,10 @@ class _SourceBalanceRow extends StatelessWidget {
                     label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style:
-                        TextStyle(fontSize: 12, color: cs.onPrimaryContainer),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontSize: 11.5,
+                      color: cs.onSurfaceVariant,
+                    ),
                   ),
                   Text(
                     rupiah.format(balance),
@@ -415,8 +507,11 @@ class _SourceBalanceRow extends StatelessWidget {
   }
 }
 
+/// Statistik kecil: titik warna, label redup, lalu angka tegas.
+///
+/// Titik dipakai sebagai penanda warna, bukan ikon, agar kartu tidak terasa
+/// seperti kumpulan tombol.
 class MiniStat extends StatelessWidget {
-  final IconData icon;
   final String label;
   final String value;
   final Color color;
@@ -424,7 +519,6 @@ class MiniStat extends StatelessWidget {
 
   const MiniStat({
     super.key,
-    required this.icon,
     required this.label,
     required this.value,
     required this.color,
@@ -433,14 +527,20 @@ class MiniStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final content = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CircleAvatar(
-          radius: 16,
-          backgroundColor: color.withValues(alpha: 0.15),
-          child: Icon(icon, size: 18, color: color),
+        Padding(
+          padding: const EdgeInsets.only(top: 5),
+          child: Container(
+            height: 6,
+            width: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 9),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -449,13 +549,23 @@ class MiniStat extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontSize: 11.5,
+                  height: 1.2,
+                  color: cs.onSurfaceVariant,
+                ),
               ),
+              const SizedBox(height: 2),
               Text(
                 value,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontWeight: FontWeight.w600, color: color),
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.2,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
               ),
             ],
           ),
